@@ -10,8 +10,11 @@
             --bg: #020617; --surface: rgba(30, 41, 59, 0.7);
             --accent: #6366f1; --warning: #f59e0b;
             --success: #10b981; --danger: #ef4444; --text-dim: #94a3b8;
-            /* Module Colors */
-            --m-red: #ef4444; --m-green: #10b981; --m-yellow: #f59e0b; --m-orange: #f97316;
+            /* Updated Module Colors */
+            --m-blue: #3b82f6; 
+            --m-pink: #ec4899; 
+            --m-orange: #f97316;
+            --m-yellow: #eab308;
         }
         body {
             font-family: 'Inter', sans-serif; background-color: var(--bg);
@@ -33,11 +36,12 @@
         
         .quiz-btn { height: 140px; border: none; border-radius: 24px; font-size: 1.2rem; font-weight: 800; color: white; cursor: pointer; transition: all 0.3s; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .quiz-btn:active { transform: scale(0.95); }
+        .quiz-btn:disabled { cursor: not-allowed; opacity: 0.8; }
         
-        #btn-red { background: var(--m-red); }
-        #btn-green { background: var(--m-green); }
-        #btn-yellow { background: var(--m-yellow); }
+        #btn-blue { background: var(--m-blue); }
+        #btn-pink { background: var(--m-pink); }
         #btn-orange { background: var(--m-orange); }
+        #btn-yellow { background: var(--m-yellow); }
 
         .btn-correct { background: var(--success) !important; box-shadow: 0 0 30px var(--success) !important; animation: pulse-green 2s infinite; }
         .btn-wrong { background: var(--danger) !important; box-shadow: 0 0 30px var(--danger) !important; opacity: 0.7; }
@@ -57,7 +61,6 @@
         .btn-submit { padding: 12px 30px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .btn-fullscreen { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px; border-radius: 50%; cursor: pointer; z-index: 3000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
 
-        /* Hidden YouTube Container */
         #yt-player-container { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -100,10 +103,10 @@
         <div id="my-group-label" style="letter-spacing:4px; font-weight:900; color:var(--accent); margin-bottom: 15px;">GROUP</div>
         <div class="timer-circle" id="player-timer">30</div>
         <div class="buzzer-grid">
-            <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">MODULE 1</button>
-            <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">MODULE 2</button>
-            <button id="btn-yellow" class="quiz-btn" onclick="loadQuestion('yellow')">MODULE 3</button>
-            <button id="btn-orange" class="quiz-btn" onclick="loadQuestion('orange')">MODULE 4</button>
+            <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">MODULE BLUE</button>
+            <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">MODULE PINK</button>
+            <button id="btn-orange" class="quiz-btn" onclick="loadQuestion('orange')">MODULE ORANGE</button>
+            <button id="btn-yellow" class="quiz-btn" onclick="loadQuestion('yellow')">MODULE YELLOW</button>
         </div>
     </section>
 
@@ -126,26 +129,21 @@
         let myRole = ""; 
         let currentQ = null;
         let activeColor = "";
-        let currentSet = "A";
+        let currentSet = null; // Changed to null to check if set is launched
 
         // --- YOUTUBE MUSIC SYSTEM ---
         let ytPlayer;
-        // Replace these IDs with any YouTube Video IDs you like
         const videoIds = ['9v6p-QxGZQI', 'XfR9iY5y94s']; 
 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('player', {
-                height: '0',
-                width: '0',
-                videoId: videoIds[0],
+                height: '0', width: '0', videoId: videoIds[0],
                 playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': videoIds.join(',') },
                 events: { 'onReady': onPlayerReady }
             });
         }
 
-        function onPlayerReady(event) {
-            console.log("YouTube Engine Ready");
-        }
+        function onPlayerReady(event) { console.log("YouTube Engine Ready"); }
 
         function playSyncMusic() {
             if (ytPlayer && ytPlayer.loadVideoById) {
@@ -160,19 +158,15 @@
             socket.emit('sync-admin-text', 'STOP_MUSIC'); 
         }
 
-        // --- FULLSCREEN ---
         function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
         }
 
+        // Updated Question Keys to match your new Blue/Pink/Orange/Yellow request
         const questionSets = {
-            A: { red: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] }, green: { q: "Nearest star?", a: "sun", type: "id" }, yellow: { q: "Water Formula?", a: "h2o", type: "id" }, orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] } },
-            B: { red: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" }, green: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] }, yellow: { q: "Symbol for Gold?", a: "au", type: "id" }, orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" } },
-            T: { red: { q: "Matter with no fixed shape/volume?", a: "gas", type: "id" }, green: { q: "Largest bird egg?", a: "ostrich", type: "mcq", choices: ["Eagle", "Ostrich", "Penguin", "Chicken"] }, yellow: { q: "Atomic number of Carbon?", a: "6", type: "id" }, orange: { q: "Part of plant that absorbs water?", a: "roots", type: "mcq", choices: ["Stem", "Leaves", "Roots", "Flowers"] } }
+            A: { blue: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] }, pink: { q: "Nearest star?", a: "sun", type: "id" }, yellow: { q: "Water Formula?", a: "h2o", type: "id" }, orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] } },
+            B: { blue: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" }, pink: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] }, yellow: { q: "Symbol for Gold?", a: "au", type: "id" }, orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" } }
         };
 
         function handleLogin() {
@@ -196,8 +190,7 @@
             selector.innerHTML = "";
             Object.keys(questionSets).sort().forEach(setName => {
                 let option = document.createElement("option");
-                option.value = setName;
-                option.text = "SET " + setName;
+                option.value = setName; option.text = "SET " + setName;
                 selector.appendChild(option);
             });
         }
@@ -218,6 +211,11 @@
         }
 
         function loadQuestion(color) {
+            // Check if a set has been launched yet
+            if (!currentSet) {
+                alert("Please wait for the Admin to launch the question set.");
+                return;
+            }
             activeColor = color;
             currentQ = questionSets[currentSet][color];
             const btn = document.getElementById(`btn-${color}`);
@@ -238,14 +236,11 @@
                 document.getElementById('answer-id').value = "";
                 document.getElementById('answer-id').disabled = isLocked;
             }
-
             submitBtn.style.display = isLocked ? 'none' : 'inline-block';
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
-        function selectOption(val) {
-            document.getElementById('answer-id').value = val;
-        }
+        function selectOption(val) { document.getElementById('answer-id').value = val; }
 
         function submitAnswer() {
             const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
@@ -257,7 +252,6 @@
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-        // --- SOCKET EVENTS ---
         socket.on('sync-admin-text', (msg) => {
             if (msg === 'START_MUSIC') playSyncMusic();
             if (msg === 'STOP_MUSIC') { if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); }
@@ -279,12 +273,13 @@
             currentSet = data.setName;
             if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
             
-            ['red','green','yellow','orange'].forEach((c, i) => {
+            // Re-enable and reset all color-coded buttons
+            ['blue','pink','orange','yellow'].forEach((c) => {
                 const btn = document.getElementById(`btn-${c}`);
                 if (btn) {
                     btn.className = 'quiz-btn';
                     btn.disabled = false;
-                    btn.innerHTML = `MODULE ${i+1}`;
+                    btn.innerHTML = `MODULE ${c.toUpperCase()}`;
                 }
             });
         });
@@ -305,7 +300,8 @@
         });
 
         socket.on('init-state', (state) => {
-            currentSet = state.currentSet;
+            // Don't set currentSet if it's the default 'A' but timer hasn't run yet
+            if(state.isTimerRunning) currentSet = state.currentSet;
             for (let i = 1; i <= 10; i++) {
                 const el = document.getElementById(`score-${i}`);
                 if (el) el.innerText = state.scores[i] || 0;
