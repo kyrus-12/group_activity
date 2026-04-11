@@ -10,11 +10,7 @@
             --bg: #020617; --surface: rgba(30, 41, 59, 0.7);
             --accent: #6366f1; --warning: #f59e0b;
             --success: #10b981; --danger: #ef4444; --text-dim: #94a3b8;
-            /* Updated Module Colors */
-            --m-blue: #3b82f6; 
-            --m-pink: #ec4899; 
-            --m-orange: #f97316;
-            --m-yellow: #eab308;
+            --m-blue: #3b82f6; --m-pink: #ec4899; --m-orange: #f97316; --m-yellow: #eab308;
         }
         body {
             font-family: 'Inter', sans-serif; background-color: var(--bg);
@@ -47,7 +43,6 @@
         .btn-wrong { background: var(--danger) !important; box-shadow: 0 0 30px var(--danger) !important; opacity: 0.7; }
         
         @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-
         .locked-label { position: absolute; bottom: 10px; left: 0; right: 0; font-size: 0.7rem; color: #fff; font-weight: 400; text-transform: uppercase; }
 
         .timer-circle { width: 100px; height: 100px; border-radius: 50%; border: 6px solid var(--accent); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; transition: all 0.5s; }
@@ -60,9 +55,7 @@
         
         .btn-submit { padding: 12px 30px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .btn-fullscreen { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px; border-radius: 50%; cursor: pointer; z-index: 3000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
-
         #yt-player-container { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
@@ -70,9 +63,7 @@
 
     <div id="yt-player-container"><div id="player"></div></div>
 
-    <button class="btn-fullscreen" onclick="toggleFullScreen()" title="Toggle Fullscreen">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
-    </button>
+    <button class="btn-fullscreen" onclick="toggleFullScreen()"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
 
     <div id="login-overlay">
         <div class="login-card">
@@ -85,10 +76,7 @@
 
     <section id="admin-view">
         <div class="admin-header">
-            <div>
-                <h2 style="margin:0">Admin Control</h2>
-                <p id="admin-set-info" style="color: var(--warning)">Ready to Launch</p>
-            </div>
+            <div><h2 style="margin:0">Admin Control</h2><p id="admin-set-info" style="color: var(--warning)">Ready to Launch</p></div>
             <div class="timer-circle" id="admin-timer">30</div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;"></select>
@@ -101,7 +89,7 @@
 
     <section id="player-view">
         <div id="my-group-label" style="letter-spacing:4px; font-weight:900; color:var(--accent); margin-bottom: 15px;">GROUP</div>
-        <div class="timer-circle" id="player-timer">120</div>
+        <div class="timer-circle" id="player-timer">30</div>
         <div class="buzzer-grid">
             <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">BLUE</button>
             <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">PINK</button>
@@ -112,7 +100,7 @@
 
     <div id="modal-overlay">
         <div class="modal-card" style="text-align:center; width:85%; max-width:450px;">
-            <h2 id="display-q" style="margin-bottom: 2rem;">Question?</h2>
+            <h2 id="display-q">Question?</h2>
             <div id="area-id"><input type="text" id="answer-id" placeholder="Type answer here..." style="width:90%; text-align:center;"></div>
             <div id="area-mcq" class="mcq-grid"></div>
             <div id="modal-footer" style="margin-top: 2rem;">
@@ -123,47 +111,23 @@
     </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
-
     <script>
         const socket = io();
-        let myRole = ""; 
-        let currentQ = null;
-        let activeColor = "";
-        let currentSet = null; // Changed to null to check if set is launched
+        let myRole = "", currentQ = null, activeColor = "", currentSet = null;
 
-        // --- YOUTUBE MUSIC SYSTEM ---
         let ytPlayer;
         const videoIds = ['9v6p-QxGZQI', 'XfR9iY5y94s']; 
-
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('player', {
                 height: '0', width: '0', videoId: videoIds[0],
                 playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': videoIds.join(',') },
-                events: { 'onReady': onPlayerReady }
+                events: { 'onReady': () => console.log("Music Ready") }
             });
         }
+        function playSyncMusic() { if (ytPlayer?.loadVideoById) ytPlayer.loadVideoById(videoIds[Math.floor(Math.random() * videoIds.length)]); ytPlayer.playVideo(); }
+        function stopMusic() { ytPlayer?.pauseVideo?.(); socket.emit('sync-admin-text', 'STOP_MUSIC'); }
+        function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
 
-        function onPlayerReady(event) { console.log("YouTube Engine Ready"); }
-
-        function playSyncMusic() {
-            if (ytPlayer && ytPlayer.loadVideoById) {
-                const randomId = videoIds[Math.floor(Math.random() * videoIds.length)];
-                ytPlayer.loadVideoById(randomId);
-                ytPlayer.playVideo();
-            }
-        }
-
-        function stopMusic() {
-            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
-            socket.emit('sync-admin-text', 'STOP_MUSIC'); 
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else if (document.exitFullscreen) document.exitFullscreen();
-        }
-
-        // Updated Question Keys to match your new Blue/Pink/Orange/Yellow request
         const questionSets = {
             A: { blue: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] }, pink: { q: "Nearest star?", a: "sun", type: "id" }, yellow: { q: "Water Formula?", a: "h2o", type: "id" }, orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] } },
             B: { blue: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" }, pink: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] }, yellow: { q: "Symbol for Gold?", a: "au", type: "id" }, orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" } }
@@ -175,8 +139,7 @@
                 myRole = "admin";
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('admin-view').style.display = 'flex';
-                initScoreboard();
-                populateSetSelector();
+                initScoreboard(); populateSetSelector();
             } else if (val.toLowerCase().startsWith('group')) {
                 myRole = val;
                 document.getElementById('login-overlay').style.display = 'none';
@@ -187,120 +150,82 @@
 
         function populateSetSelector() {
             const selector = document.getElementById('set-selector');
-            selector.innerHTML = "";
-            Object.keys(questionSets).sort().forEach(setName => {
-                let option = document.createElement("option");
-                option.value = setName; option.text = "SET " + setName;
-                selector.appendChild(option);
+            Object.keys(questionSets).forEach(setName => {
+                let opt = document.createElement("option"); opt.value = setName; opt.text = "SET " + setName;
+                selector.appendChild(opt);
             });
         }
 
         function triggerSelectedSet() {
-            const selectedSet = document.getElementById('set-selector').value;
-            socket.emit('change-set', selectedSet);
+            socket.emit('change-set', document.getElementById('set-selector').value);
             socket.emit('start-timer');
             socket.emit('sync-admin-text', 'START_MUSIC'); 
         }
 
         function initScoreboard() {
-            const board = document.getElementById('admin-scoreboard');
-            board.innerHTML = "";
-            for (let i = 1; i <= 10; i++) {
-                board.innerHTML += `<div class="group-stat"><div>Group ${i}</div><div id="score-${i}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">0</div></div>`;
-            }
+            const board = document.getElementById('admin-scoreboard'); board.innerHTML = "";
+            for (let i = 1; i <= 10; i++) board.innerHTML += `<div class="group-stat"><div>Group ${i}</div><div id="score-${i}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">0</div></div>`;
         }
 
         function loadQuestion(color) {
-            // Check if a set has been launched yet
-            if (!currentSet) {
-                alert("Please wait for the Admin to launch the question set.");
-                return;
-            }
+            if (!currentSet) { alert("Wait for Admin!"); return; }
             activeColor = color;
             currentQ = questionSets[currentSet][color];
             const btn = document.getElementById(`btn-${color}`);
             const isLocked = btn.classList.contains('btn-correct') || btn.classList.contains('btn-wrong');
-
             document.getElementById('display-q').innerText = currentQ.q;
-            const mcq = document.getElementById('area-mcq');
-            const idArea = document.getElementById('area-id');
-            const submitBtn = document.getElementById('final-submit-btn');
-
+            const mcq = document.getElementById('area-mcq'), idArea = document.getElementById('area-id');
             if (currentQ.type === 'mcq') {
                 idArea.style.display = 'none'; mcq.style.display = 'grid'; mcq.innerHTML = "";
-                currentQ.choices.forEach(c => {
-                    mcq.innerHTML += `<button class="option-btn" ${isLocked?'disabled':''} onclick="selectOption('${c}')">${c}</button>`;
-                });
+                currentQ.choices.forEach(c => mcq.innerHTML += `<button class="option-btn" ${isLocked?'disabled':''} onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`);
             } else {
-                idArea.style.display = 'block'; mcq.style.display = 'none';
-                document.getElementById('answer-id').value = "";
-                document.getElementById('answer-id').disabled = isLocked;
+                idArea.style.display = 'block'; mcq.style.display = 'none'; document.getElementById('answer-id').value = "";
             }
-            submitBtn.style.display = isLocked ? 'none' : 'inline-block';
+            document.getElementById('final-submit-btn').style.display = isLocked ? 'none' : 'inline-block';
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
-        function selectOption(val) { document.getElementById('answer-id').value = val; }
-
         function submitAnswer() {
-            const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
-            const isCorrect = userAns === currentQ.a.toLowerCase();
-            const gNum = myRole.replace(/\D/g,'');
-            socket.emit('submit-module', { group: gNum, color: activeColor, isCorrect });
+            const ans = document.getElementById('answer-id').value.trim().toLowerCase();
+            socket.emit('submit-module', { group: myRole.replace(/\D/g,''), color: activeColor, isCorrect: ans === currentQ.a.toLowerCase() });
             closeModal();
         }
-
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-        socket.on('sync-admin-text', (msg) => {
-            if (msg === 'START_MUSIC') playSyncMusic();
-            if (msg === 'STOP_MUSIC') { if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); }
-        });
-
+        socket.on('sync-admin-text', (msg) => { if (msg === 'START_MUSIC') playSyncMusic(); else ytPlayer?.pauseVideo?.(); });
         socket.on('module-synced', (data) => {
             if (myRole.toLowerCase() === `group ${data.group}`) {
                 const btn = document.getElementById(`btn-${data.color}`);
                 if (btn) {
                     btn.classList.add(data.status === 'correct' ? 'btn-correct' : 'btn-wrong');
-                    btn.innerHTML = `MODULE ${data.color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
+                    btn.innerHTML = `${data.color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
                 }
             }
-            const el = document.getElementById(`score-${data.group}`);
-            if (el) el.innerText = data.scores[data.group] || 0;
+            const el = document.getElementById(`score-${data.group}`); if (el) el.innerText = data.scores[data.group] || 0;
         });
 
         socket.on('set-updated', (data) => {
             currentSet = data.setName;
             if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
-            
-            // Re-enable and reset all color-coded buttons
-            ['blue','pink','orange','yellow'].forEach((c) => {
+            ['blue','pink','orange','yellow'].forEach(c => {
                 const btn = document.getElementById(`btn-${c}`);
-                if (btn) {
-                    btn.className = 'quiz-btn';
-                    btn.disabled = false;
-                    btn.innerHTML = `MODULE ${c.toUpperCase()}`;
-                }
+                if (btn) { btn.className = 'quiz-btn'; btn.disabled = false; btn.innerHTML = c.toUpperCase(); }
             });
         });
 
         socket.on('timer-tick', (t) => {
-            const circles = document.querySelectorAll('.timer-circle');
-            circles.forEach(c => {
+            document.querySelectorAll('.timer-circle').forEach(c => {
                 c.innerText = t;
-                if (t <= 5) c.classList.add('timer-warning');
-                else c.classList.remove('timer-warning');
+                if (t <= 5) c.classList.add('timer-warning'); else c.classList.remove('timer-warning');
             });
         });
 
         socket.on('timer-end', () => {
             document.querySelectorAll('.quiz-btn').forEach(b => b.disabled = true);
-            closeModal();
-            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+            closeModal(); ytPlayer?.pauseVideo?.();
         });
 
         socket.on('init-state', (state) => {
-            // Don't set currentSet if it's the default 'A' but timer hasn't run yet
             if(state.isTimerRunning) currentSet = state.currentSet;
             for (let i = 1; i <= 10; i++) {
                 const el = document.getElementById(`score-${i}`);
