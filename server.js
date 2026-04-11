@@ -13,7 +13,8 @@ let gameState = {
     currentSet: 'A',
     timeLeft: 30,
     isTimerRunning: false,
-    completedModules: {} 
+    completedModules: {},
+    activeGroups: [] // Track only group numbers that actually logged in
 };
 
 // Initialize data for Groups 1-10
@@ -43,6 +44,17 @@ function endRound() {
 io.on('connection', (socket) => {
     console.log('User Connected:', socket.id);
     socket.emit('init-state', gameState);
+
+    // 1. NEW: TRACK ACTIVE LOGINS
+    socket.on('group-login', (groupNum) => {
+        const num = parseInt(groupNum);
+        if (!isNaN(num) && !gameState.activeGroups.includes(num)) {
+            gameState.activeGroups.push(num);
+            console.log(`Group ${num} is now active.`);
+            // Sync active list so Admin UI updates immediately
+            io.emit('update-active-groups', gameState.activeGroups);
+        }
+    });
 
     // 2. ADMIN: CHANGE QUESTION SET
     socket.on('change-set', (setName) => {
@@ -81,37 +93,43 @@ io.on('connection', (socket) => {
         }, 1000);
     });
 
-    // 5. MODULE SUBMISSION (With Auto-Finish Logic)
+    // 5. MODULE SUBMISSION (Updated for Dynamic Auto-Finish)
     socket.on('submit-module', (data) => {
         let { group, color, isCorrect } = data;
+        let gNum = parseInt(group);
         
-        if (gameState.completedModules[group] && gameState.completedModules[group][color] === null) {
-            gameState.completedModules[group][color] = isCorrect ? 'correct' : 'wrong';
+        if (gameState.completedModules[gNum] && gameState.completedModules[gNum][color] === null) {
+            gameState.completedModules[gNum][color] = isCorrect ? 'correct' : 'wrong';
             
             if (isCorrect) {
-                gameState.scores[group] += 10;
+                gameState.scores[gNum] += 10;
             }
             
             io.emit('module-synced', { 
-                group, 
+                group: gNum, 
                 color, 
-                status: gameState.completedModules[group][color],
+                status: gameState.completedModules[gNum][color],
                 scores: gameState.scores 
             });
 
-            // CHECK IF ALL GROUPS ARE DONE
-            let allGroupsFinished = true;
-            for (let i = 1; i <= 10; i++) {
-                const mods = gameState.completedModules[i];
-                // If any module in any group is still null, they aren't done
-                if (!mods.blue || !mods.pink || !mods.orange || !mods.yellow) {
-                    allGroupsFinished = false;
-                    break;
+            // LOGIC: Check if only the ACTIVE (logged-in) groups are finished
+            let allActiveFinished = true;
+            
+            // Only check groups that have actually logged in
+            if (gameState.activeGroups.length > 0) {
+                for (let num of gameState.activeGroups) {
+                    const mods = gameState.completedModules[num];
+                    if (!mods.blue || !mods.pink || !mods.orange || !mods.yellow) {
+                        allActiveFinished = false;
+                        break;
+                    }
                 }
+            } else {
+                allActiveFinished = false; // Don't end if no one is logged in
             }
 
-            if (allGroupsFinished && gameState.isTimerRunning) {
-                console.log("All groups finished early! Terminating timer...");
+            if (allActiveFinished && gameState.isTimerRunning) {
+                console.log("All active groups finished early! Terminating timer...");
                 endRound();
             }
         }
