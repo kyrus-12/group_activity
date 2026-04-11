@@ -25,8 +25,9 @@
         #admin-view { padding: 2rem; flex-direction: column; height: 100%; overflow-y: auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; }
         .scoreboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem; }
-        .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
-        
+        .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s ease-out; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         #player-view { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
         .buzzer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 600px; }
         
@@ -139,9 +140,11 @@
                 myRole = "admin";
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('admin-view').style.display = 'flex';
-                initScoreboard(); populateSetSelector();
+                populateSetSelector();
             } else if (val.toLowerCase().startsWith('group')) {
                 myRole = val;
+                const groupNum = myRole.replace(/\D/g,'');
+                socket.emit('group-login', groupNum); // Notify server of activity
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('player-view').style.display = 'flex';
                 document.getElementById('my-group-label').innerText = myRole.toUpperCase();
@@ -150,6 +153,7 @@
 
         function populateSetSelector() {
             const selector = document.getElementById('set-selector');
+            selector.innerHTML = "";
             Object.keys(questionSets).forEach(setName => {
                 let opt = document.createElement("option"); opt.value = setName; opt.text = "SET " + setName;
                 selector.appendChild(opt);
@@ -160,11 +164,6 @@
             socket.emit('change-set', document.getElementById('set-selector').value);
             socket.emit('start-timer');
             socket.emit('sync-admin-text', 'START_MUSIC'); 
-        }
-
-        function initScoreboard() {
-            const board = document.getElementById('admin-scoreboard'); board.innerHTML = "";
-            for (let i = 1; i <= 10; i++) board.innerHTML += `<div class="group-stat"><div>Group ${i}</div><div id="score-${i}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">0</div></div>`;
         }
 
         function loadQuestion(color) {
@@ -193,6 +192,22 @@
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
         socket.on('sync-admin-text', (msg) => { if (msg === 'START_MUSIC') playSyncMusic(); else ytPlayer?.pauseVideo?.(); });
+
+        // Update Scoreboard UI for Admin dynamically
+        socket.on('update-active-groups', (activeGroups) => {
+            if (myRole === "admin") {
+                const board = document.getElementById('admin-scoreboard');
+                board.innerHTML = ""; // Clear existing
+                activeGroups.sort((a,b) => a - b).forEach(num => {
+                    board.innerHTML += `
+                        <div class="group-stat" id="card-${num}">
+                            <div>Group ${num}</div>
+                            <div id="score-${num}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">0</div>
+                        </div>`;
+                });
+            }
+        });
+
         socket.on('module-synced', (data) => {
             if (myRole.toLowerCase() === `group ${data.group}`) {
                 const btn = document.getElementById(`btn-${data.color}`);
@@ -201,7 +216,8 @@
                     btn.innerHTML = `${data.color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
                 }
             }
-            const el = document.getElementById(`score-${data.group}`); if (el) el.innerText = data.scores[data.group] || 0;
+            const el = document.getElementById(`score-${data.group}`); 
+            if (el) el.innerText = data.scores[data.group] || 0;
         });
 
         socket.on('set-updated', (data) => {
@@ -227,9 +243,16 @@
 
         socket.on('init-state', (state) => {
             if(state.isTimerRunning) currentSet = state.currentSet;
-            for (let i = 1; i <= 10; i++) {
-                const el = document.getElementById(`score-${i}`);
-                if (el) el.innerText = state.scores[i] || 0;
+            if (myRole === "admin") {
+                const board = document.getElementById('admin-scoreboard');
+                board.innerHTML = "";
+                state.activeGroups.sort((a,b) => a - b).forEach(num => {
+                    board.innerHTML += `
+                        <div class="group-stat">
+                            <div>Group ${num}</div>
+                            <div id="score-${num}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">${state.scores[num] || 0}</div>
+                        </div>`;
+                });
             }
         });
     </script>
