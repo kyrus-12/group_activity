@@ -57,9 +57,10 @@
                 <p id="admin-set-info" style="color: var(--warning)">Start a Set to Begin</p>
             </div>
             <div class="timer-circle" id="admin-timer">30</div>
-            <div>
-                <button class="btn-submit" onclick="changeSet('A')">SET A</button>
-                <button class="btn-submit" onclick="changeSet('B')" style="background:var(--warning)">SET B</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;">
+                </select>
+                <button class="btn-submit" onclick="triggerSelectedSet()">LAUNCH SET</button>
             </div>
         </div>
         <div class="scoreboard-grid" id="admin-scoreboard"></div>
@@ -96,127 +97,27 @@
         let currentSet = "A";
 
         const questionSets = {
-    A: {
-        red: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] },
-        green: { q: "Nearest star?", a: "sun", type: "id" },
-        yellow: { q: "Water Formula?", a: "h2o", type: "id" },
-        orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] }
-    },
-    B: {
-        red: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" },
-        green: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] },
-        yellow: { q: "Symbol for Gold?", a: "au", type: "id" },
-        orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" }
-    },
-    C: {
-        red: { q: "Smallest unit of life?", a: "cell", type: "id" },
-        green: { q: "pH of pure water?", a: "7", type: "mcq", choices: ["5", "6", "7", "8"] },
-        yellow: { q: "Table salt formula?", a: "nacl", type: "id" },
-        orange: { q: "Center of an atom?", a: "nucleus", type: "mcq", choices: ["Electron", "Proton", "Nucleus", "Shell"] }
-    },
-    D: {
-        red: { q: "Red planet?", a: "mars", type: "id" },
-        green: { q: "Charge of an electron?", a: "negative", type: "mcq", choices: ["Positive", "Negative", "Neutral", "None"] },
-        yellow: { q: "Process plants use to make food?", a: "photosynthesis", type: "id" },
-        orange: { q: "Hottest planet in the solar system?", a: "venus", type: "mcq", choices: ["Mercury", "Venus", "Mars", "Jupiter"] }
-    },
-    E: {
-        red: { q: "Study of living things?", a: "biology", type: "id" },
-        green: { q: "Melting point of ice (°C)?", a: "0", type: "mcq", choices: ["-1", "0", "1", "100"] },
-        yellow: { q: "Atomic symbol for Oxygen?", a: "o", type: "id" },
-        orange: { q: "Layer of gas protecting Earth?", a: "ozone", type: "mcq", choices: ["Oxygen", "Ozone", "Nitrogen", "Argon"] }
-    },
-    F: {
-        red: { q: "Hardest natural substance?", a: "diamond", type: "id" },
-        green: { q: "Number of bones in adult human?", a: "206", type: "mcq", choices: ["106", "206", "306", "250"] },
-        yellow: { q: "Liquid metal at room temp?", a: "mercury", type: "id" },
-        orange: { q: "Primary gas in Earth's atmosphere?", a: "nitrogen", type: "mcq", choices: ["Oxygen", "Carbon", "Nitrogen", "Hydrogen"] }
-    },
-    G: {
-        red: { q: "Energy of motion?", a: "kinetic", type: "id" },
-        green: { q: "Brain of the cell?", a: "nucleus", type: "mcq", choices: ["Nucleus", "Ribosome", "Vacuole", "Wall"] },
-        yellow: { q: "Formula for Glucose?", a: "c6h12o6", type: "id" },
-        orange: { q: "Color of a live copper wire?", a: "brown", type: "mcq", choices: ["Blue", "Yellow", "Green", "Brown"] }
-    },
-    H: {
-        red: { q: "Unit of electrical resistance?", a: "ohm", type: "id" },
-        green: { q: "Part of eye sensitive to light?", a: "retina", type: "mcq", choices: ["Pupil", "Lens", "Retina", "Iris"] },
-        yellow: { q: "Density of water (g/cm³)?", a: "1", type: "id" },
-        orange: { q: "Type of rock from lava?", a: "igneous", type: "mcq", choices: ["Sedimentary", "Metamorphic", "Igneous", "Fossil"] }
-    },
-    I: {
-        red: { q: "Gas needed for fire?", a: "oxygen", type: "id" },
-        green: { q: "Human blood type 'Universal Donor'?", a: "o", type: "mcq", choices: ["A", "B", "AB", "O"] },
-        yellow: { q: "Symbol for Silver?", a: "ag", type: "id" },
-        orange: { q: "Standard unit of mass?", a: "kilogram", type: "mcq", choices: ["Gram", "Kilogram", "Pound", "Ounce"] }
-    },
-    J: {
-        red: { q: "Force that pulls us down?", a: "gravity", type: "id" },
-        green: { q: "Instrument for earthquakes?", a: "seismograph", type: "mcq", choices: ["Barometer", "Seismograph", "Telescope", "Sonar"] },
-        yellow: { q: "Speed = Distance / ?", a: "time", type: "id" },
-        orange: { q: "Boiling point of water (°C)?", a: "100", type: "mcq", choices: ["90", "100", "110", "120"] }
-    },
-    K: {
-        red: { q: "Smallest planet?", a: "mercury", type: "id" },
-        green: { q: "Acid found in lemons?", a: "citric", type: "mcq", choices: ["Lactic", "Citric", "Acetic", "Hydrochloric"] },
-        yellow: { q: "Symbol for Sodium?", a: "na", type: "id" },
-        orange: { q: "How many kingdoms of life?", a: "5", type: "mcq", choices: ["3", "4", "5", "6"] }
-    },
-    L: {
-        red: { q: "Green pigment in plants?", a: "chlorophyll", type: "id" },
-        green: { q: "State of matter with fixed shape?", a: "solid", type: "mcq", choices: ["Solid", "Liquid", "Gas", "Plasma"] },
-        yellow: { q: "Atomic number of Hydrogen?", a: "1", type: "id" },
-        orange: { q: "Earth's natural satellite?", a: "moon", type: "mcq", choices: ["Sun", "Moon", "Mars", "ISS"] }
-    },
-    M: {
-        red: { q: "Unit of Frequency?", a: "hertz", type: "id" },
-        green: { q: "Father of Genetics?", a: "mendel", type: "mcq", choices: ["Darwin", "Mendel", "Newton", "Einstein"] },
-        yellow: { q: "Formula for Carbon Dioxide?", a: "co2", type: "id" },
-        orange: { q: "Common name for NaCl?", a: "salt", type: "mcq", choices: ["Sugar", "Salt", "Baking Soda", "Bleach"] }
-    },
-    N: {
-        red: { q: "Lightest element?", a: "hydrogen", type: "id" },
-        green: { q: "Human body's largest organ?", a: "skin", type: "mcq", choices: ["Liver", "Heart", "Skin", "Lungs"] },
-        yellow: { q: "Symbol for Iron?", a: "fe", type: "id" },
-        orange: { q: "Sound travels fastest in?", a: "solid", type: "mcq", choices: ["Solid", "Liquid", "Gas", "Vacuum"] }
-    },
-    O: {
-        red: { q: "Outer layer of Earth?", a: "crust", type: "id" },
-        green: { q: "Substance that speeds up reaction?", a: "catalyst", type: "mcq", choices: ["Inhibitor", "Catalyst", "Solvent", "Reactant"] },
-        yellow: { q: "Ammonia formula?", a: "nh3", type: "id" },
-        orange: { q: "Main source of energy for Earth?", a: "sun", type: "mcq", choices: ["Moon", "Sun", "Stars", "Core"] }
-    },
-    P: {
-        red: { q: "Ability to do work?", a: "energy", type: "id" },
-        green: { q: "Normal human body temp (°C)?", a: "37", type: "mcq", choices: ["35", "36", "37", "38"] },
-        yellow: { q: "Symbol for Potassium?", a: "k", type: "id" },
-        orange: { q: "Device to measure current?", a: "ammeter", type: "mcq", choices: ["Voltmeter", "Ammeter", "Ohmmeter", "Galvanometer"] }
-    },
-    Q: {
-        red: { q: "Flow of electrons?", a: "electricity", type: "id" },
-        green: { q: "Male part of a flower?", a: "stamen", type: "mcq", choices: ["Pistil", "Stamen", "Petal", "Sepal"] },
-        yellow: { q: "Methane formula?", a: "ch4", type: "id" },
-        orange: { q: "A push or a pull?", a: "force", type: "mcq", choices: ["Work", "Energy", "Force", "Power"] }
-    },
-    R: {
-        red: { q: "Study of fossils?", a: "paleontology", type: "id" },
-        green: { q: "Galaxy we live in?", a: "milky way", type: "mcq", choices: ["Andromeda", "Milky Way", "Sombrero", "Orion"] },
-        yellow: { q: "Symbol for Copper?", a: "cu", type: "id" },
-        orange: { q: "Negatively charged ion?", a: "anion", type: "mcq", choices: ["Cation", "Anion", "Proton", "Neutron"] }
-    },
-    S: {
-        red: { q: "DNA shape?", a: "double helix", type: "id" },
-        green: { q: "Earth's sister planet?", a: "venus", type: "mcq", choices: ["Mars", "Venus", "Jupiter", "Saturn"] },
-        yellow: { q: "Sulfuric acid formula?", a: "h2so4", type: "id" },
-        orange: { q: "Unit of Power?", a: "watt", type: "mcq", choices: ["Joule", "Watt", "Volt", "Ampere"] }
-    },
-    T: {
-        red: { q: "Matter with no fixed shape/volume?", a: "gas", type: "id" },
-        green: { q: "Largest bird egg?", a: "ostrich", type: "mcq", choices: ["Eagle", "Ostrich", "Penguin", "Chicken"] },
-        yellow: { q: "Atomic number of Carbon?", a: "6", type: "id" },
-        orange: { q: "Part of plant that absorbs water?", a: "roots", type: "mcq", choices: ["Stem", "Leaves", "Roots", "Flowers"] }
-    }
-};
+            A: { red: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] }, green: { q: "Nearest star?", a: "sun", type: "id" }, yellow: { q: "Water Formula?", a: "h2o", type: "id" }, orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] } },
+            B: { red: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" }, green: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] }, yellow: { q: "Symbol for Gold?", a: "au", type: "id" }, orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" } },
+            C: { red: { q: "Smallest unit of life?", a: "cell", type: "id" }, green: { q: "pH of pure water?", a: "7", type: "mcq", choices: ["5", "6", "7", "8"] }, yellow: { q: "Table salt formula?", a: "nacl", type: "id" }, orange: { q: "Center of an atom?", a: "nucleus", type: "mcq", choices: ["Electron", "Proton", "Nucleus", "Shell"] } },
+            D: { red: { q: "Red planet?", a: "mars", type: "id" }, green: { q: "Charge of an electron?", a: "negative", type: "mcq", choices: ["Positive", "Negative", "Neutral", "None"] }, yellow: { q: "Process plants use to make food?", a: "photosynthesis", type: "id" }, orange: { q: "Hottest planet in the solar system?", a: "venus", type: "mcq", choices: ["Mercury", "Venus", "Mars", "Jupiter"] } },
+            E: { red: { q: "Study of living things?", a: "biology", type: "id" }, green: { q: "Melting point of ice (°C)?", a: "0", type: "mcq", choices: ["-1", "0", "1", "100"] }, yellow: { q: "Atomic symbol for Oxygen?", a: "o", type: "id" }, orange: { q: "Layer of gas protecting Earth?", a: "ozone", type: "mcq", choices: ["Oxygen", "Ozone", "Nitrogen", "Argon"] } },
+            F: { red: { q: "Hardest natural substance?", a: "diamond", type: "id" }, green: { q: "Number of bones in adult human?", a: "206", type: "mcq", choices: ["106", "206", "306", "250"] }, yellow: { q: "Liquid metal at room temp?", a: "mercury", type: "id" }, orange: { q: "Primary gas in Earth's atmosphere?", a: "nitrogen", type: "mcq", choices: ["Oxygen", "Carbon", "Nitrogen", "Hydrogen"] } },
+            G: { red: { q: "Energy of motion?", a: "kinetic", type: "id" }, green: { q: "Brain of the cell?", a: "nucleus", type: "mcq", choices: ["Nucleus", "Ribosome", "Vacuole", "Wall"] }, yellow: { q: "Formula for Glucose?", a: "c6h12o6", type: "id" }, orange: { q: "Color of a live copper wire?", a: "brown", type: "mcq", choices: ["Blue", "Yellow", "Green", "Brown"] } },
+            H: { red: { q: "Unit of electrical resistance?", a: "ohm", type: "id" }, green: { q: "Part of eye sensitive to light?", a: "retina", type: "mcq", choices: ["Pupil", "Lens", "Retina", "Iris"] }, yellow: { q: "Density of water (g/cm³)?", a: "1", type: "id" }, orange: { q: "Type of rock from lava?", a: "igneous", type: "mcq", choices: ["Sedimentary", "Metamorphic", "Igneous", "Fossil"] } },
+            I: { red: { q: "Gas needed for fire?", a: "oxygen", type: "id" }, green: { q: "Human blood type 'Universal Donor'?", a: "o", type: "mcq", choices: ["A", "B", "AB", "O"] }, yellow: { q: "Symbol for Silver?", a: "ag", type: "id" }, orange: { q: "Standard unit of mass?", a: "kilogram", type: "mcq", choices: ["Gram", "Kilogram", "Pound", "Ounce"] } },
+            J: { red: { q: "Force that pulls us down?", a: "gravity", type: "id" }, green: { q: "Instrument for earthquakes?", a: "seismograph", type: "mcq", choices: ["Barometer", "Seismograph", "Telescope", "Sonar"] }, yellow: { q: "Speed = Distance / ?", a: "time", type: "id" }, orange: { q: "Boiling point of water (°C)?", a: "100", type: "mcq", choices: ["90", "100", "110", "120"] } },
+            K: { red: { q: "Smallest planet?", a: "mercury", type: "id" }, green: { q: "Acid found in lemons?", a: "citric", type: "mcq", choices: ["Lactic", "Citric", "Acetic", "Hydrochloric"] }, yellow: { q: "Symbol for Sodium?", a: "na", type: "id" }, orange: { q: "How many kingdoms of life?", a: "5", type: "mcq", choices: ["3", "4", "5", "6"] } },
+            L: { red: { q: "Green pigment in plants?", a: "chlorophyll", type: "id" }, green: { q: "State of matter with fixed shape?", a: "solid", type: "mcq", choices: ["Solid", "Liquid", "Gas", "Plasma"] }, yellow: { q: "Atomic number of Hydrogen?", a: "1", type: "id" }, orange: { q: "Earth's natural satellite?", a: "moon", type: "mcq", choices: ["Sun", "Moon", "Mars", "ISS"] } },
+            M: { red: { q: "Unit of Frequency?", a: "hertz", type: "id" }, green: { q: "Father of Genetics?", a: "mendel", type: "mcq", choices: ["Darwin", "Mendel", "Newton", "Einstein"] }, yellow: { q: "Formula for Carbon Dioxide?", a: "co2", type: "id" }, orange: { q: "Common name for NaCl?", a: "salt", type: "mcq", choices: ["Sugar", "Salt", "Baking Soda", "Bleach"] } },
+            N: { red: { q: "Lightest element?", a: "hydrogen", type: "id" }, green: { q: "Human body's largest organ?", a: "skin", type: "mcq", choices: ["Liver", "Heart", "Skin", "Lungs"] }, yellow: { q: "Symbol for Iron?", a: "fe", type: "id" }, orange: { q: "Sound travels fastest in?", a: "solid", type: "mcq", choices: ["Solid", "Liquid", "Gas", "Vacuum"] } },
+            O: { red: { q: "Outer layer of Earth?", a: "crust", type: "id" }, green: { q: "Substance that speeds up reaction?", a: "catalyst", type: "mcq", choices: ["Inhibitor", "Catalyst", "Solvent", "Reactant"] }, yellow: { q: "Ammonia formula?", a: "nh3", type: "id" }, orange: { q: "Main source of energy for Earth?", a: "sun", type: "mcq", choices: ["Moon", "Sun", "Stars", "Core"] } },
+            P: { red: { q: "Ability to do work?", a: "energy", type: "id" }, green: { q: "Normal human body temp (°C)?", a: "37", type: "mcq", choices: ["35", "36", "37", "38"] }, yellow: { q: "Symbol for Potassium?", a: "k", type: "id" }, orange: { q: "Device to measure current?", a: "ammeter", type: "mcq", choices: ["Voltmeter", "Ammeter", "Ohmmeter", "Galvanometer"] } },
+            Q: { red: { q: "Flow of electrons?", a: "electricity", type: "id" }, green: { q: "Male part of a flower?", a: "stamen", type: "mcq", choices: ["Pistil", "Stamen", "Petal", "Sepal"] }, yellow: { q: "Methane formula?", a: "ch4", type: "id" }, orange: { q: "A push or a pull?", a: "force", type: "mcq", choices: ["Work", "Energy", "Force", "Power"] } },
+            R: { red: { q: "Study of fossils?", a: "paleontology", type: "id" }, green: { q: "Galaxy we live in?", a: "milky way", type: "mcq", choices: ["Andromeda", "Milky Way", "Sombrero", "Orion"] }, yellow: { q: "Symbol for Copper?", a: "cu", type: "id" }, orange: { q: "Negatively charged ion?", a: "anion", type: "mcq", choices: ["Cation", "Anion", "Proton", "Neutron"] } },
+            S: { red: { q: "DNA shape?", a: "double helix", type: "id" }, green: { q: "Earth's sister planet?", a: "venus", type: "mcq", choices: ["Mars", "Venus", "Jupiter", "Saturn"] }, yellow: { q: "Sulfuric acid formula?", a: "h2so4", type: "id" }, orange: { q: "Unit of Power?", a: "watt", type: "mcq", choices: ["Joule", "Watt", "Volt", "Ampere"] } },
+            T: { red: { q: "Matter with no fixed shape/volume?", a: "gas", type: "id" }, green: { q: "Largest bird egg?", a: "ostrich", type: "mcq", choices: ["Eagle", "Ostrich", "Penguin", "Chicken"] }, yellow: { q: "Atomic number of Carbon?", a: "6", type: "id" }, orange: { q: "Part of plant that absorbs water?", a: "roots", type: "mcq", choices: ["Stem", "Leaves", "Roots", "Flowers"] } }
+        };
 
         function handleLogin() {
             const val = document.getElementById('login-input').value.trim();
@@ -225,12 +126,30 @@
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('admin-view').style.display = 'flex';
                 initScoreboard();
+                populateSetSelector(); // <--- Dynamically adds your sets
             } else if (val.toLowerCase().startsWith('group')) {
                 myRole = val;
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('player-view').style.display = 'flex';
                 document.getElementById('my-group-label').innerText = myRole.toUpperCase();
             }
+        }
+
+        // Detects all keys in questionSets (A, B, C, etc.) and adds them to dropdown
+        function populateSetSelector() {
+            const selector = document.getElementById('set-selector');
+            selector.innerHTML = "";
+            Object.keys(questionSets).sort().forEach(setName => {
+                let option = document.createElement("option");
+                option.value = setName;
+                option.text = "SET " + setName;
+                selector.appendChild(option);
+            });
+        }
+
+        function triggerSelectedSet() {
+            const selectedSet = document.getElementById('set-selector').value;
+            changeSet(selectedSet);
         }
 
         function initScoreboard() {
@@ -275,7 +194,8 @@
         function submitAnswer() {
             const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
             const isCorrect = userAns === currentQ.a.toLowerCase();
-            const gNum = myRole.split(" ")[1];
+            const gParts = myRole.split(" ");
+            const gNum = gParts.length > 1 ? gParts[1] : 0;
             socket.emit('submit-module', { group: gNum, color: activeColor, isCorrect });
             closeModal();
         }
@@ -324,15 +244,14 @@
 
         socket.on('init-state', (state) => {
             currentSet = state.currentSet;
-            const gNum = myRole ? myRole.split(" ")[1] : null;
+            const gParts = myRole ? myRole.split(" ") : [];
+            const gNum = gParts.length > 1 ? gParts[1] : null;
             
-            // Sync scores
             for (let i = 1; i <= 10; i++) {
                 const el = document.getElementById(`score-${i}`);
                 if (el) el.innerText = state.scores[i] || 0;
                 
-                // If I am a group, sync my locked buttons from the server
-                if (gNum && i == gNum) {
+                if (gNum && i == gNum && state.completedModules[i]) {
                     Object.keys(state.completedModules[i]).forEach(color => {
                         const status = state.completedModules[i][color];
                         if (status) updateLocalUI(i, color, status);
