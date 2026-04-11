@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIGHAM Pro - Realtime Quiz</title>
+    <title>QUIZ-piratory System</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
@@ -76,10 +76,10 @@
 
     <div id="login-overlay">
         <div class="login-card">
-            <h1 style="letter-spacing: 5px; color: var(--accent);">AIGHAM PRO</h1>
-            <input type="password" id="login-input" placeholder="Admin or Group #">
+            <h1 style="letter-spacing: 5px; color: var(--accent);">QUIZ-piratory Login</h1>
+            <input type="password" id="login-input" placeholder="Group #">
             <br>
-            <button class="btn-submit" onclick="handleLogin()">CONNECT ENGINE</button>
+            <button class="btn-submit" onclick="handleLogin()">CONNECT</button>
         </div>
     </div>
 
@@ -101,12 +101,12 @@
 
     <section id="player-view">
         <div id="my-group-label" style="letter-spacing:4px; font-weight:900; color:var(--accent); margin-bottom: 15px;">GROUP</div>
-        <div class="timer-circle" id="player-timer">30</div>
+        <div class="timer-circle" id="player-timer">120</div>
         <div class="buzzer-grid">
-            <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">MODULE BLUE</button>
-            <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">MODULE PINK</button>
-            <button id="btn-orange" class="quiz-btn" onclick="loadQuestion('orange')">MODULE ORANGE</button>
-            <button id="btn-yellow" class="quiz-btn" onclick="loadQuestion('yellow')">MODULE YELLOW</button>
+            <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">BLUE</button>
+            <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">PINK</button>
+            <button id="btn-orange" class="quiz-btn" onclick="loadQuestion('orange')">ORANGE</button>
+            <button id="btn-yellow" class="quiz-btn" onclick="loadQuestion('yellow')">YELLOW</button>
         </div>
     </section>
 
