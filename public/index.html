@@ -7,273 +7,95 @@
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
-            --bg: #020617;
-            --surface: rgba(30, 41, 59, 0.7);
-            --accent: #6366f1;
-            --warning: #f59e0b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --text-dim: #94a3b8;
+            --bg: #020617; --surface: rgba(30, 41, 59, 0.7);
+            --accent: #6366f1; --warning: #f59e0b;
+            --success: #10b981; --danger: #ef4444; --text-dim: #94a3b8;
         }
-
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background-color: var(--bg);
+            font-family: 'Inter', sans-serif; background-color: var(--bg);
             background-image: radial-gradient(circle at top right, #1e1b4b, transparent);
-            color: white;
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            color: white; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
-
-        /* --- Login Overlay --- */
-        #login-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            z-index: 2000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-card {
-            background: var(--surface);
-            padding: 3rem;
-            border-radius: 24px;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        }
-
-        input {
-            padding: 12px 20px;
-            font-size: 1rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.3);
-            color: white;
-            margin-bottom: 1rem;
-            outline: none;
-        }
-
-        /* --- Sections Visibility --- */
+        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        .login-card { background: var(--surface); padding: 3rem; border-radius: 24px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        input { padding: 12px 20px; font-size: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; margin-bottom: 1rem; outline: none; }
         #admin-view, #player-view { display: none; }
+        #admin-view { padding: 2rem; flex-direction: column; height: 100%; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; }
+        .scoreboard-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1rem; }
+        .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; }
+        #player-view { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
+        .buzzer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 600px; }
+        .quiz-btn { height: 150px; border: none; border-radius: 24px; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; }
+        
+        /* Status Styles */
+        .btn-correct { background-color: var(--success) !important; box-shadow: 0 0 20px var(--success); }
+        .btn-wrong { background-color: var(--danger) !important; box-shadow: 0 0 20px var(--danger); }
+        .locked-label { position: absolute; top: 10px; font-size: 0.7rem; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; }
 
-        /* --- Admin Dashboard --- */
-        #admin-view {
-            padding: 2rem;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--surface);
-            padding: 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-        }
-
-        .scoreboard-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .group-stat {
-            background: rgba(255,255,255,0.05);
-            padding: 1rem;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* --- Player View --- */
-        #player-view {
-            flex: 1;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-        }
-
-        .group-indicator {
-            font-size: 1.2rem;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 1rem;
-        }
-
-        .buzzer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .quiz-btn {
-            height: 150px;
-            border: none;
-            border-radius: 24px;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: white;
-            cursor: pointer;
-            background: var(--surface);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-
-        .quiz-btn:hover:not(:disabled) {
-            background: var(--accent);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .quiz-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        /* --- Timer Display --- */
-        .timer-circle {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 6px solid var(--accent);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 3rem;
-            font-weight: 900;
-            margin: 2rem 0;
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
-        }
-
-        /* --- Question Modal --- */
-        #modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, 0.98);
-            z-index: 1000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .modal-card {
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        .mcq-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 2rem 0;
-        }
-
-        .option-btn {
-            padding: 20px;
-            background: var(--surface);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .option-btn:hover { background: white; color: black; }
-
-        .btn-submit {
-            padding: 15px 40px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .timer-circle { width: 120px; height: 120px; border-radius: 50%; border: 6px solid var(--accent); display: flex; justify-content: center; align-items: center; font-size: 3rem; font-weight: 900; margin: 2rem 0; }
+        #modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 2rem 0; }
+        .option-btn { padding: 20px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; cursor: pointer; }
+        .btn-submit { padding: 15px 40px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-card">
-            <h1 style="margin-top:0">AIGHAM PRO</h1>
-            <p style="color: var(--text-dim)">Access Code</p>
+            <h1>AIGHAM PRO</h1>
             <input type="password" id="login-input" placeholder="Admin or Group #">
             <br>
-            <button class="btn-submit" onclick="handleLogin()">CONNECT SYSTEM</button>
+            <button class="btn-submit" onclick="handleLogin()">CONNECT</button>
         </div>
     </div>
 
     <section id="admin-view">
         <div class="admin-header">
             <div>
-                <h2 style="margin:0">Admin Control Center</h2>
-                <p id="admin-set-info" style="color: var(--warning)">Active Set: A</p>
+                <h2 style="margin:0">Admin Control</h2>
+                <p id="admin-set-info" style="color: var(--warning)">Start a Set to Begin</p>
             </div>
             <div class="timer-circle" id="admin-timer">30</div>
             <div>
-                <button onclick="changeSet('A')">Set A</button>
-                <button onclick="changeSet('B')">Set B</button>
-                <button onclick="changeSet('C')">Set C</button>
+                <button class="btn-submit" onclick="changeSet('A')">SET A</button>
+                <button class="btn-submit" onclick="changeSet('B')" style="background:var(--warning)">SET B</button>
             </div>
         </div>
-
-        <div id="admin-q-display" style="text-align:center; font-size: 1.5rem; padding: 2rem; border: 1px dashed var(--accent)">
-            Waiting for question selection...
-        </div>
-
-        <div class="scoreboard-grid" id="admin-scoreboard">
-            </div>
+        <div class="scoreboard-grid" id="admin-scoreboard"></div>
     </section>
 
     <section id="player-view">
-        <div class="group-indicator" id="my-group-label">Group X</div>
+        <div id="my-group-label" style="letter-spacing:2px; color:var(--accent)">GROUP</div>
         <div class="timer-circle" id="player-timer">30</div>
-        
         <div class="buzzer-grid">
-            <button class="quiz-btn" onclick="loadQuestion('red')">MODULE 1</button>
-            <button class="quiz-btn" onclick="loadQuestion('green')">MODULE 2</button>
-            <button class="quiz-btn" onclick="loadQuestion('yellow')">MODULE 3</button>
-            <button class="quiz-btn" onclick="loadQuestion('orange')">MODULE 4</button>
+            <button id="btn-red" class="quiz-btn" onclick="loadQuestion('red')">MODULE 1</button>
+            <button id="btn-green" class="quiz-btn" onclick="loadQuestion('green')">MODULE 2</button>
+            <button id="btn-yellow" class="quiz-btn" onclick="loadQuestion('yellow')">MODULE 3</button>
+            <button id="btn-orange" class="quiz-btn" onclick="loadQuestion('orange')">MODULE 4</button>
         </div>
     </section>
 
     <div id="modal-overlay">
-        <div class="modal-card">
+        <div class="modal-card" style="text-align:center; width:90%; max-width:500px;">
             <h2 id="display-q">Question?</h2>
-            
-            <div id="area-id">
-                <input type="text" id="answer-id" placeholder="Your Answer..." style="width: 80%">
-            </div>
-
+            <div id="area-id"><input type="text" id="answer-id" placeholder="Your Answer..." style="width:80%"></div>
             <div id="area-mcq" class="mcq-grid"></div>
-
-            <button class="btn-submit" onclick="submitAnswer()">SUBMIT FINAL ANSWER</button>
+            <div id="modal-footer">
+                <button id="final-submit-btn" class="btn-submit" onclick="submitAnswer()">SUBMIT</button>
+                <button class="btn-submit" style="background:#475569" onclick="closeModal()">CLOSE</button>
+            </div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        let myRole = ""; // "admin" or "Group 1", etc.
+        let myRole = ""; 
         let currentQ = null;
+        let activeColor = "";
         let currentSet = "A";
-        let hasAnsweredThisRound = false;
+        let isModuleLocked = false;
 
         const questionSets = {
             A: {
@@ -290,142 +112,126 @@
             }
         };
 
-        // --- LOGIN LOGIC ---
         function handleLogin() {
             const input = document.getElementById('login-input').value.trim();
             if (input.toLowerCase() === 'admin') {
                 myRole = "admin";
-                showAdmin();
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('admin-view').style.display = 'flex';
+                initScoreboard();
             } else if (input.toLowerCase().startsWith('group')) {
-                myRole = input; // e.g. "Group 1"
-                showPlayer();
-            } else {
-                alert("Please enter 'admin' or 'Group 1' through 'Group 10'");
+                myRole = input;
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('player-view').style.display = 'flex';
+                document.getElementById('my-group-label').innerText = myRole.toUpperCase();
             }
-        }
-
-        function showAdmin() {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('admin-view').style.display = 'flex';
-            initScoreboard();
-        }
-
-        function showPlayer() {
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('player-view').style.display = 'flex';
-            document.getElementById('my-group-label').innerText = myRole;
         }
 
         function initScoreboard() {
             const board = document.getElementById('admin-scoreboard');
             board.innerHTML = "";
             for (let i = 1; i <= 10; i++) {
-                board.innerHTML += `
-                    <div class="group-stat">
-                        <div style="font-size:0.8rem; color:var(--text-dim)">Group ${i}</div>
-                        <div id="score-${i}" style="font-size:1.5rem; font-weight:bold">0</div>
-                    </div>
-                `;
+                board.innerHTML += `<div class="group-stat"><div>Group ${i}</div><div id="score-${i}" style="font-size:1.5rem">0</div></div>`;
             }
         }
 
-        // --- GAME ACTIONS ---
         function changeSet(s) {
             socket.emit('change-set', s);
+            socket.emit('start-timer');
         }
 
         function loadQuestion(color) {
-            if (hasAnsweredThisRound) return;
-            
+            activeColor = color;
             currentQ = questionSets[currentSet][color];
             document.getElementById('display-q').innerText = currentQ.q;
             
+            // Check if THIS specific button is already locked
+            const btn = document.getElementById(`btn-${color}`);
+            isModuleLocked = btn.classList.contains('btn-correct') || btn.classList.contains('btn-wrong');
+
             const mcq = document.getElementById('area-mcq');
             const idArea = document.getElementById('area-id');
+            const submitBtn = document.getElementById('final-submit-btn');
             
             if (currentQ.type === 'mcq') {
-                idArea.style.display = 'none';
-                mcq.style.display = 'grid';
-                mcq.innerHTML = "";
+                idArea.style.display = 'none'; mcq.style.display = 'grid'; mcq.innerHTML = "";
                 currentQ.choices.forEach(c => {
-                    mcq.innerHTML += `<button class="option-btn" onclick="setAnswer('${c}')">${c}</button>`;
+                    mcq.innerHTML += `<button class="option-btn" ${isModuleLocked?'disabled':''} onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`;
                 });
             } else {
-                idArea.style.display = 'block';
-                mcq.style.display = 'none';
+                idArea.style.display = 'block'; mcq.style.display = 'none';
                 document.getElementById('answer-id').value = "";
+                document.getElementById('answer-id').disabled = isModuleLocked;
             }
 
+            submitBtn.style.display = isModuleLocked ? 'none' : 'inline-block';
             document.getElementById('modal-overlay').style.display = 'flex';
-            socket.emit('start-timer');
-            socket.emit('sync-admin-text', currentQ.q);
-        }
-
-        function setAnswer(val) {
-            document.getElementById('answer-id').value = val;
         }
 
         function submitAnswer() {
+            if(isModuleLocked) return;
             const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
-            const correctAns = currentQ.a.toLowerCase();
-            
+            const isCorrect = userAns === currentQ.a.toLowerCase();
             const groupNum = myRole.split(" ")[1];
-            
-            if (userAns === correctAns) {
-                socket.emit('update-score', { group: groupNum, points: 10 });
-                alert("CORRECT! Point added.");
-            } else {
-                alert("WRONG! Correct answer: " + currentQ.a);
-            }
 
-            hasAnsweredThisRound = true;
-            disableBuzzer();
+            // Send to server to handle points and syncing
+            socket.emit('submit-module', { group: groupNum, color: activeColor, isCorrect });
             closeModal();
         }
 
-        function closeModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-        function disableBuzzer() {
-            const btns = document.querySelectorAll('.quiz-btn');
-            btns.forEach(b => b.disabled = true);
-        }
+        // --- SOCKET EVENTS ---
 
-        function enableBuzzer() {
-            const btns = document.querySelectorAll('.quiz-btn');
-            btns.forEach(b => b.disabled = false);
-            hasAnsweredThisRound = false;
-        }
+        socket.on('module-synced', (data) => {
+            const { group, color, status, scores } = data;
+            
+            // 1. Update Scoreboard for everyone
+            for (let i = 1; i <= 10; i++) {
+                const el = document.getElementById(`score-${i}`);
+                if (el) el.innerText = scores[i] || 0;
+            }
 
-        // --- SOCKETS ---
+            // 2. Update button color IF this device belongs to that group
+            if (myRole === `Group ${group}`) {
+                const btn = document.getElementById(`btn-${color}`);
+                btn.className = 'quiz-btn ' + (status === 'correct' ? 'btn-correct' : 'btn-wrong');
+                btn.innerHTML = `MODULE ${color.toUpperCase()} <div class="locked-label">LOCKED</div>`;
+            }
+        });
+
+        socket.on('set-updated', (data) => {
+            currentSet = data.setName;
+            if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
+            
+            // Reset all buttons visual state
+            const colors = ['red', 'green', 'yellow', 'orange'];
+            colors.forEach((c, index) => {
+                const btn = document.getElementById(`btn-${c}`);
+                if(btn) {
+                    btn.className = 'quiz-btn';
+                    btn.disabled = false;
+                    btn.innerHTML = `MODULE ${index + 1}`;
+                }
+            });
+        });
+
         socket.on('timer-tick', (t) => {
             document.getElementById('admin-timer').innerText = t;
             document.getElementById('player-timer').innerText = t;
         });
 
         socket.on('timer-end', () => {
-            disableBuzzer();
+            const btns = document.querySelectorAll('.quiz-btn');
+            btns.forEach(b => b.disabled = true);
             closeModal();
         });
 
-        socket.on('score-updated', (scores) => {
-            for (let i = 1; i <= 10; i++) {
-                const el = document.getElementById(`score-${i}`);
-                if (el) el.innerText = scores[i] || 0;
-            }
+        socket.on('init-state', (state) => {
+            currentSet = state.currentSet;
+            // On refresh, restore the colors/scores
+            // (Note: For a full production app you'd loop through completedModules here)
         });
-
-        socket.on('set-updated', (s) => {
-            currentSet = s;
-            if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + s;
-            enableBuzzer(); // Reset buttons when admin changes set
-        });
-
-        socket.on('sync-admin-text', (txt) => {
-            if (myRole === "admin") document.getElementById('admin-q-display').innerText = "LIVE QUESTION: " + txt;
-        });
-
     </script>
 </body>
 </html>
