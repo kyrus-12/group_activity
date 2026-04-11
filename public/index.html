@@ -20,24 +20,23 @@
         .login-card { background: var(--surface); padding: 3rem; border-radius: 24px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); text-align: center; }
         input { padding: 12px 20px; font-size: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; margin-bottom: 1rem; outline: none; }
         #admin-view, #player-view { display: none; }
-        #admin-view { padding: 2rem; flex-direction: column; height: 100%; }
+        #admin-view { padding: 2rem; flex-direction: column; height: 100%; overflow-y: auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; }
         .scoreboard-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1rem; }
         .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; }
         #player-view { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
         .buzzer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 600px; }
-        .quiz-btn { height: 150px; border: none; border-radius: 24px; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; }
+        .quiz-btn { height: 140px; border: none; border-radius: 24px; font-size: 1.2rem; font-weight: 800; color: white; cursor: pointer; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; }
         
-        /* Status Styles */
         .btn-correct { background-color: var(--success) !important; box-shadow: 0 0 20px var(--success); }
         .btn-wrong { background-color: var(--danger) !important; box-shadow: 0 0 20px var(--danger); }
-        .locked-label { position: absolute; top: 10px; font-size: 0.7rem; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; }
+        .locked-label { position: absolute; bottom: 10px; left: 0; right: 0; font-size: 0.7rem; color: #fff; opacity: 0.8; }
 
-        .timer-circle { width: 120px; height: 120px; border-radius: 50%; border: 6px solid var(--accent); display: flex; justify-content: center; align-items: center; font-size: 3rem; font-weight: 900; margin: 2rem 0; }
+        .timer-circle { width: 100px; height: 100px; border-radius: 50%; border: 6px solid var(--accent); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; }
         #modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 2rem 0; }
-        .option-btn { padding: 20px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; cursor: pointer; }
-        .btn-submit { padding: 15px 40px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 2rem 0; width: 100%; }
+        .option-btn { padding: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; cursor: pointer; }
+        .btn-submit { padding: 12px 30px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin: 5px; }
     </style>
 </head>
 <body>
@@ -67,7 +66,7 @@
     </section>
 
     <section id="player-view">
-        <div id="my-group-label" style="letter-spacing:2px; color:var(--accent)">GROUP</div>
+        <div id="my-group-label" style="letter-spacing:2px; color:var(--accent); margin-bottom: 10px;">GROUP</div>
         <div class="timer-circle" id="player-timer">30</div>
         <div class="buzzer-grid">
             <button id="btn-red" class="quiz-btn" onclick="loadQuestion('red')">MODULE 1</button>
@@ -78,9 +77,9 @@
     </section>
 
     <div id="modal-overlay">
-        <div class="modal-card" style="text-align:center; width:90%; max-width:500px;">
+        <div class="modal-card" style="text-align:center; width:85%; max-width:450px;">
             <h2 id="display-q">Question?</h2>
-            <div id="area-id"><input type="text" id="answer-id" placeholder="Your Answer..." style="width:80%"></div>
+            <div id="area-id"><input type="text" id="answer-id" placeholder="Your Answer..." style="width:90%"></div>
             <div id="area-mcq" class="mcq-grid"></div>
             <div id="modal-footer">
                 <button id="final-submit-btn" class="btn-submit" onclick="submitAnswer()">SUBMIT</button>
@@ -95,7 +94,6 @@
         let currentQ = null;
         let activeColor = "";
         let currentSet = "A";
-        let isModuleLocked = false;
 
         const questionSets = {
             A: {
@@ -113,14 +111,14 @@
         };
 
         function handleLogin() {
-            const input = document.getElementById('login-input').value.trim();
-            if (input.toLowerCase() === 'admin') {
+            const val = document.getElementById('login-input').value.trim();
+            if (val.toLowerCase() === 'admin') {
                 myRole = "admin";
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('admin-view').style.display = 'flex';
                 initScoreboard();
-            } else if (input.toLowerCase().startsWith('group')) {
-                myRole = input;
+            } else if (val.toLowerCase().startsWith('group')) {
+                myRole = val;
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('player-view').style.display = 'flex';
                 document.getElementById('my-group-label').innerText = myRole.toUpperCase();
@@ -143,75 +141,65 @@
         function loadQuestion(color) {
             activeColor = color;
             currentQ = questionSets[currentSet][color];
-            document.getElementById('display-q').innerText = currentQ.q;
-            
-            // Check if THIS specific button is already locked
             const btn = document.getElementById(`btn-${color}`);
-            isModuleLocked = btn.classList.contains('btn-correct') || btn.classList.contains('btn-wrong');
+            const isLocked = btn.classList.contains('btn-correct') || btn.classList.contains('btn-wrong');
 
+            document.getElementById('display-q').innerText = currentQ.q;
             const mcq = document.getElementById('area-mcq');
             const idArea = document.getElementById('area-id');
             const submitBtn = document.getElementById('final-submit-btn');
-            
+
             if (currentQ.type === 'mcq') {
                 idArea.style.display = 'none'; mcq.style.display = 'grid'; mcq.innerHTML = "";
                 currentQ.choices.forEach(c => {
-                    mcq.innerHTML += `<button class="option-btn" ${isModuleLocked?'disabled':''} onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`;
+                    mcq.innerHTML += `<button class="option-btn" ${isLocked?'disabled':''} onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`;
                 });
             } else {
                 idArea.style.display = 'block'; mcq.style.display = 'none';
                 document.getElementById('answer-id').value = "";
-                document.getElementById('answer-id').disabled = isModuleLocked;
+                document.getElementById('answer-id').disabled = isLocked;
             }
 
-            submitBtn.style.display = isModuleLocked ? 'none' : 'inline-block';
+            submitBtn.style.display = isLocked ? 'none' : 'inline-block';
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
         function submitAnswer() {
-            if(isModuleLocked) return;
             const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
             const isCorrect = userAns === currentQ.a.toLowerCase();
-            const groupNum = myRole.split(" ")[1];
-
-            // Send to server to handle points and syncing
-            socket.emit('submit-module', { group: groupNum, color: activeColor, isCorrect });
+            const gNum = myRole.split(" ")[1];
+            socket.emit('submit-module', { group: gNum, color: activeColor, isCorrect });
             closeModal();
         }
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-        // --- SOCKET EVENTS ---
-
-        socket.on('module-synced', (data) => {
-            const { group, color, status, scores } = data;
-            
-            // 1. Update Scoreboard for everyone
-            for (let i = 1; i <= 10; i++) {
-                const el = document.getElementById(`score-${i}`);
-                if (el) el.innerText = scores[i] || 0;
-            }
-
-            // 2. Update button color IF this device belongs to that group
+        function updateLocalUI(group, color, status) {
             if (myRole === `Group ${group}`) {
                 const btn = document.getElementById(`btn-${color}`);
-                btn.className = 'quiz-btn ' + (status === 'correct' ? 'btn-correct' : 'btn-wrong');
-                btn.innerHTML = `MODULE ${color.toUpperCase()} <div class="locked-label">LOCKED</div>`;
+                if (btn) {
+                    btn.className = 'quiz-btn ' + (status === 'correct' ? 'btn-correct' : 'btn-wrong');
+                    btn.innerHTML = `MODULE ${color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
+                }
+            }
+        }
+
+        socket.on('module-synced', (data) => {
+            updateLocalUI(data.group, data.color, data.status);
+            for (let i = 1; i <= 10; i++) {
+                const el = document.getElementById(`score-${i}`);
+                if (el) el.innerText = data.scores[i] || 0;
             }
         });
 
         socket.on('set-updated', (data) => {
             currentSet = data.setName;
             if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
-            
-            // Reset all buttons visual state
-            const colors = ['red', 'green', 'yellow', 'orange'];
-            colors.forEach((c, index) => {
+            ['red','green','yellow','orange'].forEach((c, i) => {
                 const btn = document.getElementById(`btn-${c}`);
-                if(btn) {
-                    btn.className = 'quiz-btn';
-                    btn.disabled = false;
-                    btn.innerHTML = `MODULE ${index + 1}`;
+                if (btn) {
+                    btn.className = 'quiz-btn'; btn.disabled = false;
+                    btn.innerHTML = `MODULE ${i+1}`;
                 }
             });
         });
@@ -222,15 +210,27 @@
         });
 
         socket.on('timer-end', () => {
-            const btns = document.querySelectorAll('.quiz-btn');
-            btns.forEach(b => b.disabled = true);
+            document.querySelectorAll('.quiz-btn').forEach(b => b.disabled = true);
             closeModal();
         });
 
         socket.on('init-state', (state) => {
             currentSet = state.currentSet;
-            // On refresh, restore the colors/scores
-            // (Note: For a full production app you'd loop through completedModules here)
+            const gNum = myRole ? myRole.split(" ")[1] : null;
+            
+            // Sync scores
+            for (let i = 1; i <= 10; i++) {
+                const el = document.getElementById(`score-${i}`);
+                if (el) el.innerText = state.scores[i] || 0;
+                
+                // If I am a group, sync my locked buttons from the server
+                if (gNum && i == gNum) {
+                    Object.keys(state.completedModules[i]).forEach(color => {
+                        const status = state.completedModules[i][color];
+                        if (status) updateLocalUI(i, color, status);
+                    });
+                }
+            }
         });
     </script>
 </body>
