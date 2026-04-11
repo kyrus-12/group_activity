@@ -18,10 +18,13 @@ let gameState = {
 };
 
 // Initialize data for Groups 1-10
-for (let i = 1; i <= 10; i++) {
-    gameState.scores[i] = 0;
-    gameState.completedModules[i] = { red: null, green: null, yellow: null, orange: null };
+function resetGameState() {
+    for (let i = 1; i <= 10; i++) {
+        gameState.scores[i] = gameState.scores[i] || 0; // Keep scores across sets unless you want a full reset
+        gameState.completedModules[i] = { red: null, green: null, yellow: null, orange: null };
+    }
 }
+resetGameState();
 
 let timerInterval = null;
 
@@ -30,15 +33,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection', (socket) => {
     console.log('User Connected:', socket.id);
 
-    // 1. SYNC NEW USERS
+    // 1. SYNC NEW USERS (Sends current set, scores, and locked buttons)
     socket.emit('init-state', gameState);
 
     // 2. ADMIN: CHANGE QUESTION SET
     socket.on('change-set', (setName) => {
         gameState.currentSet = setName;
+        // Reset only module buttons for the new set, but keep the total scores
         for (let i = 1; i <= 10; i++) {
             gameState.completedModules[i] = { red: null, green: null, yellow: null, orange: null };
         }
+        
         console.log(`Question set changed to: ${setName}`);
         io.emit('set-updated', { 
             setName: gameState.currentSet, 
@@ -46,7 +51,7 @@ io.on('connection', (socket) => {
         });
     });
 
-    // 3. ADMIN: SYNC TEXT
+    // 3. ADMIN: SYNC TEXT (Optional feature for instructions)
     socket.on('sync-admin-text', (txt) => {
         io.emit('sync-admin-text', txt);
     });
@@ -54,6 +59,7 @@ io.on('connection', (socket) => {
     // 4. GLOBAL TIMER LOGIC
     socket.on('start-timer', () => {
         if (gameState.isTimerRunning) clearInterval(timerInterval);
+        
         gameState.timeLeft = 30;
         gameState.isTimerRunning = true;
         io.emit('timer-tick', gameState.timeLeft);
@@ -61,6 +67,7 @@ io.on('connection', (socket) => {
         timerInterval = setInterval(() => {
             gameState.timeLeft--;
             io.emit('timer-tick', gameState.timeLeft);
+            
             if (gameState.timeLeft <= 0) {
                 clearInterval(timerInterval);
                 gameState.isTimerRunning = false;
@@ -69,13 +76,19 @@ io.on('connection', (socket) => {
         }, 1000);
     });
 
-    // 5. MODULE SUBMISSION (Anti-Cheat)
+    // 5. MODULE SUBMISSION (Anti-Cheat & Scoring)
     socket.on('submit-module', (data) => {
-        const { group, color, isCorrect } = data;
+        let { group, color, isCorrect } = data;
+        
+        // Ensure group is treated as a number/key
         if (gameState.completedModules[group] && gameState.completedModules[group][color] === null) {
             gameState.completedModules[group][color] = isCorrect ? 'correct' : 'wrong';
-            if (isCorrect) gameState.scores[group] += 10;
             
+            if (isCorrect) {
+                gameState.scores[group] += 10;
+            }
+            
+            // Broadcast update to everyone immediately
             io.emit('module-synced', { 
                 group, 
                 color, 
@@ -90,6 +103,7 @@ io.on('connection', (socket) => {
     });
 });
 
+// Using your preferred port 10000 (Render default)
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
     console.log(`AIGHAM ENGINE LIVE ON PORT ${PORT}`);
