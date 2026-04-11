@@ -3,314 +3,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aigham Quiz System - Pro</title>
+    <title>AIGHAM Pro - Realtime Quiz</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.1);
-            --red: #ef4444;
-            --green: #22c55e;
-            --yellow: #eab308;
-            --orange: #f97316;
+            --bg: #020617;
+            --surface: rgba(30, 41, 59, 0.7);
+            --accent: #6366f1;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-dim: #94a3b8;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #1e1b4b, transparent);
             color: white;
             margin: 0;
             height: 100vh;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
-        /* --- Login Screen --- */
+        /* --- Login Overlay --- */
         #login-overlay {
             position: fixed;
             inset: 0;
             background: var(--bg);
-            z-index: 1000;
+            z-index: 2000;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .login-card {
-            background: var(--glass);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
+            background: var(--surface);
+            padding: 3rem;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1);
             text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
 
-        /* --- Layout Visibility --- */
-        #main-section, #players-section { display: none; }
+        input {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            margin-bottom: 1rem;
+            outline: none;
+        }
 
-        /* --- Admin Section --- */
-        #main-section {
-            flex: 0.5;
-            padding: 20px;
-            border-bottom: 2px solid var(--glass);
+        /* --- Sections Visibility --- */
+        #admin-view, #player-view { display: none; }
+
+        /* --- Admin Dashboard --- */
+        #admin-view {
+            padding: 2rem;
             flex-direction: column;
+            height: 100%;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: space-around;
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
         }
 
-        .scoreboard { display: flex; gap: 20px; }
-        .score-card { background: var(--glass); padding: 10px 30px; border-radius: 12px; text-align: center; min-width: 100px; }
-        
-        .timer-box {
-            font-size: 3rem;
-            font-weight: bold;
-            color: var(--yellow);
-            text-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+        .scoreboard-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
         }
 
-        .set-controls { margin-top: 10px; }
+        .group-stat {
+            background: rgba(255,255,255,0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-        /* --- Players Section --- */
-        #players-section {
+        /* --- Player View --- */
+        #player-view {
             flex: 1;
-            display: none; 
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .group-indicator {
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .buzzer-grid {
+            display: grid;
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-            position: relative;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
         }
 
         .quiz-btn {
+            height: 150px;
             border: none;
-            border-radius: 20px;
-            font-size: 2rem;
-            font-weight: bold;
+            border-radius: 24px;
+            font-size: 1.5rem;
+            font-weight: 800;
             color: white;
             cursor: pointer;
-            transition: 0.2s;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
         }
 
-        .player-timer {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
+        .quiz-btn:hover:not(:disabled) {
+            background: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .quiz-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* --- Timer Display --- */
+        .timer-circle {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            width: 80px;
-            height: 80px;
+            border: 6px solid var(--accent);
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 4px solid var(--yellow);
-            font-size: 2rem;
-            z-index: 10;
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 2rem 0;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
         }
 
-        .red { background: var(--red); }
-        .green { background: var(--green); }
-        .yellow { background: var(--yellow); }
-        .orange { background: var(--orange); }
-
-        /* --- Modals --- */
-        #input-overlay {
+        /* --- Question Modal --- */
+        #modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(2, 6, 23, 0.98);
+            z-index: 1000;
             display: none;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            z-index: 500;
-            padding: 20px;
         }
 
-        .mcq-container {
+        .modal-card {
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .mcq-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 15px;
+            margin: 2rem 0;
         }
 
-        input { padding: 15px; font-size: 1.2rem; border-radius: 8px; border: none; width: 300px; margin: 10px; }
-        .btn-action { padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; }
-        .mcq-choice { background: var(--glass); color: white; border: 1px solid white; padding: 15px; border-radius: 10px; cursor: pointer; }
-        .mcq-choice:hover { background: white; color: black; }
+        .option-btn {
+            padding: 20px;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .option-btn:hover { background: white; color: black; }
+
+        .btn-submit {
+            padding: 15px 40px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-card">
-            <h1>AIGHAM SYSTEM</h1>
-            <input type="password" id="login-input" placeholder="Type 'Group' or Password">
+            <h1 style="margin-top:0">AIGHAM PRO</h1>
+            <p style="color: var(--text-dim)">Access Code</p>
+            <input type="password" id="login-input" placeholder="Admin or Group #">
             <br>
-            <button class="btn-action" style="background: var(--green); color:white;" onclick="handleLogin()">ENTER</button>
+            <button class="btn-submit" onclick="handleLogin()">CONNECT SYSTEM</button>
         </div>
     </div>
 
-    <section id="main-section">
-        <div class="set-controls">
-            SET: <button onclick="changeSet('A')">A</button> <button onclick="changeSet('B')">B</button> <button onclick="changeSet('C')">C</button>
-            <span id="current-set-display" style="margin-left:10px; color:var(--orange)">Current Set: A</span>
+    <section id="admin-view">
+        <div class="admin-header">
+            <div>
+                <h2 style="margin:0">Admin Control Center</h2>
+                <p id="admin-set-info" style="color: var(--warning)">Active Set: A</p>
+            </div>
+            <div class="timer-circle" id="admin-timer">30</div>
+            <div>
+                <button onclick="changeSet('A')">Set A</button>
+                <button onclick="changeSet('B')">Set B</button>
+                <button onclick="changeSet('C')">Set C</button>
+            </div>
         </div>
-        <div class="scoreboard">
-            <div class="score-card"><h3>Group A</h3><h2 id="score-A">0</h2></div>
-            <div class="timer-box" id="admin-timer">30</div>
-            <div class="score-card"><h3>Group B</h3><h2 id="score-B">0</h2></div>
+
+        <div id="admin-q-display" style="text-align:center; font-size: 1.5rem; padding: 2rem; border: 1px dashed var(--accent)">
+            Waiting for question selection...
         </div>
-        <div id="admin-q-text" style="font-size: 1.2rem; text-align: center; border: 1px dashed gray; padding: 10px; width: 80%;">Question will appear here</div>
+
+        <div class="scoreboard-grid" id="admin-scoreboard">
+            </div>
     </section>
 
-    <section id="players-section">
-        <div class="player-timer" id="p-timer">30</div>
-        <button class="quiz-btn red" onclick="loadQuestion('red')">SET A</button>
-        <button class="quiz-btn green" onclick="loadQuestion('green')">SET B</button>
-        <button class="quiz-btn yellow" onclick="loadQuestion('yellow')">SET C</button>
-        <button class="quiz-btn orange" onclick="loadQuestion('orange')">SET D</button>
-    </section>
-
-    <div id="input-overlay">
-        <h2 id="modal-q" style="text-align: center;">Question?</h2>
+    <section id="player-view">
+        <div class="group-indicator" id="my-group-label">Group X</div>
+        <div class="timer-circle" id="player-timer">30</div>
         
-        <div id="id-input-area">
-            <input type="text" id="user-answer" placeholder="Type identification answer...">
+        <div class="buzzer-grid">
+            <button class="quiz-btn" onclick="loadQuestion('red')">MODULE 1</button>
+            <button class="quiz-btn" onclick="loadQuestion('green')">MODULE 2</button>
+            <button class="quiz-btn" onclick="loadQuestion('yellow')">MODULE 3</button>
+            <button class="quiz-btn" onclick="loadQuestion('orange')">MODULE 4</button>
         </div>
+    </section>
 
-        <div id="mcq-input-area" class="mcq-container">
+    <div id="modal-overlay">
+        <div class="modal-card">
+            <h2 id="display-q">Question?</h2>
+            
+            <div id="area-id">
+                <input type="text" id="answer-id" placeholder="Your Answer..." style="width: 80%">
             </div>
 
-        <div style="margin-top: 30px;">
-            <button class="btn-action" style="background:var(--green); color:white" onclick="checkAnswer('A')">Submit Group A</button>
-            <button class="btn-action" style="background:var(--orange); color:white" onclick="checkAnswer('B')">Submit Group B</button>
-            <button class="btn-action" onclick="closeModal()">Close</button>
+            <div id="area-mcq" class="mcq-grid"></div>
+
+            <button class="btn-submit" onclick="submitAnswer()">SUBMIT FINAL ANSWER</button>
         </div>
     </div>
 
     <script>
         const socket = io();
+        let myRole = ""; // "admin" or "Group 1", etc.
+        let currentQ = null;
+        let currentSet = "A";
+        let hasAnsweredThisRound = false;
 
         const questionSets = {
             A: {
-                red: { q: "Which organ pumps blood?", a: "heart", type: "mcq", choices: ["Brain", "Heart", "Lungs", "Liver"] },
-                green: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] },
-                yellow: { q: "Chemical symbol for Gold?", a: "au", type: "id" },
-                orange: { q: "Nearest star to Earth?", a: "sun", type: "id" }
+                red: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] },
+                green: { q: "Nearest star?", a: "sun", type: "id" },
+                yellow: { q: "Water Formula?", a: "h2o", type: "id" },
+                orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] }
             },
             B: {
-                red: { q: "Gas plants breathe in?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N2", "H2"] },
-                green: { q: "Largest planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Saturn", "Earth"] },
-                yellow: { q: "H2O is the formula for?", a: "water", type: "id" },
-                orange: { q: "Powerhouse of the cell?", a: "mitochondria", type: "id" }
-            },
-            C: {
-                red: { q: "Boiling point of water (°C)?", a: "100", type: "mcq", choices: ["0", "50", "100", "212"] },
-                green: { q: "Which is a metal?", a: "iron", type: "mcq", choices: ["Iron", "Oxygen", "Neon", "Helium"] },
-                yellow: { q: "Center of an atom?", a: "nucleus", type: "id" },
-                orange: { q: "Study of life?", a: "biology", type: "id" }
+                red: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" },
+                green: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] },
+                yellow: { q: "Symbol for Gold?", a: "au", type: "id" },
+                orange: { q: "Speed of light?", a: "300000", type: "id" }
             }
         };
 
-        let currentSet = 'A';
-        let scores = { A: 0, B: 0 };
-        let currentQ = null;
-
-        // --- SOCKET LISTENERS ---
-        socket.on('init-state', (state) => {
-            scores = state.scores;
-            currentSet = state.currentSet;
-            updateUI();
-        });
-
-        socket.on('timer-tick', (time) => {
-            document.getElementById('admin-timer').innerText = time;
-            document.getElementById('p-timer').innerText = time;
-        });
-
-        socket.on('score-updated', (newScores) => {
-            scores = newScores;
-            document.getElementById('score-A').innerText = scores.A;
-            document.getElementById('score-B').innerText = scores.B;
-        });
-
-        socket.on('set-updated', (setName) => {
-            currentSet = setName;
-            document.getElementById('current-set-display').innerText = "Current Set: " + setName;
-        });
-
-        socket.on('timer-end', () => {
-            alert("Time is up!");
-        });
-
-        // --- CORE FUNCTIONS ---
+        // --- LOGIN LOGIC ---
         function handleLogin() {
-            const val = document.getElementById('login-input').value.toLowerCase();
-            if (val === "group") {
-                document.getElementById('login-overlay').style.display = "none";
-                document.getElementById('players-section').style.display = "grid";
-            } else if (val === "admin") {
-                document.getElementById('login-overlay').style.display = "none";
-                document.getElementById('main-section').style.display = "flex";
-                document.getElementById('players-section').style.display = "grid";
-            } else { alert("Wrong Password"); }
+            const input = document.getElementById('login-input').value.trim();
+            if (input.toLowerCase() === 'admin') {
+                myRole = "admin";
+                showAdmin();
+            } else if (input.toLowerCase().startsWith('group')) {
+                myRole = input; // e.g. "Group 1"
+                showPlayer();
+            } else {
+                alert("Please enter 'admin' or 'Group 1' through 'Group 10'");
+            }
         }
 
-        function changeSet(setName) {
-            socket.emit('change-set', setName);
+        function showAdmin() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-view').style.display = 'flex';
+            initScoreboard();
         }
 
-        function updateUI() {
-            document.getElementById('score-A').innerText = scores.A;
-            document.getElementById('score-B').innerText = scores.B;
-            document.getElementById('current-set-display').innerText = "Current Set: " + currentSet;
+        function showPlayer() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('player-view').style.display = 'flex';
+            document.getElementById('my-group-label').innerText = myRole;
+        }
+
+        function initScoreboard() {
+            const board = document.getElementById('admin-scoreboard');
+            board.innerHTML = "";
+            for (let i = 1; i <= 10; i++) {
+                board.innerHTML += `
+                    <div class="group-stat">
+                        <div style="font-size:0.8rem; color:var(--text-dim)">Group ${i}</div>
+                        <div id="score-${i}" style="font-size:1.5rem; font-weight:bold">0</div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- GAME ACTIONS ---
+        function changeSet(s) {
+            socket.emit('change-set', s);
         }
 
         function loadQuestion(color) {
-            currentQ = questionSets[currentSet][color];
-            document.getElementById('admin-q-text').innerText = currentQ.q;
-            document.getElementById('modal-q').innerText = currentQ.q;
+            if (hasAnsweredThisRound) return;
             
-            const idArea = document.getElementById('id-input-area');
-            const mcqArea = document.getElementById('mcq-input-area');
+            currentQ = questionSets[currentSet][color];
+            document.getElementById('display-q').innerText = currentQ.q;
+            
+            const mcq = document.getElementById('area-mcq');
+            const idArea = document.getElementById('area-id');
             
             if (currentQ.type === 'mcq') {
-                idArea.style.display = "none";
-                mcqArea.style.display = "grid";
-                mcqArea.innerHTML = "";
-                currentQ.choices.forEach(choice => {
-                    mcqArea.innerHTML += `<button class="mcq-choice" onclick="selectMCQ('${choice}')">${choice}</button>`;
+                idArea.style.display = 'none';
+                mcq.style.display = 'grid';
+                mcq.innerHTML = "";
+                currentQ.choices.forEach(c => {
+                    mcq.innerHTML += `<button class="option-btn" onclick="setAnswer('${c}')">${c}</button>`;
                 });
             } else {
-                idArea.style.display = "block";
-                mcqArea.style.display = "none";
-                document.getElementById('user-answer').value = "";
+                idArea.style.display = 'block';
+                mcq.style.display = 'none';
+                document.getElementById('answer-id').value = "";
             }
-            
-            document.getElementById('input-overlay').style.display = 'flex';
+
+            document.getElementById('modal-overlay').style.display = 'flex';
             socket.emit('start-timer');
+            socket.emit('sync-admin-text', currentQ.q);
         }
 
-        function selectMCQ(choice) {
-            document.getElementById('user-answer').value = choice;
+        function setAnswer(val) {
+            document.getElementById('answer-id').value = val;
         }
 
-        function checkAnswer(group) {
-            const val = document.getElementById('user-answer').value.toLowerCase();
-            if (val === currentQ.a.toLowerCase()) {
-                socket.emit('update-score', { group: group, points: 10 });
-                alert("Group " + group + " Correct!");
+        function submitAnswer() {
+            const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
+            const correctAns = currentQ.a.toLowerCase();
+            
+            const groupNum = myRole.split(" ")[1];
+            
+            if (userAns === correctAns) {
+                socket.emit('update-score', { group: groupNum, points: 10 });
+                alert("CORRECT! Point added.");
             } else {
-                alert("Wrong! Answer: " + currentQ.a);
+                alert("WRONG! Correct answer: " + currentQ.a);
             }
+
+            hasAnsweredThisRound = true;
+            disableBuzzer();
             closeModal();
         }
 
         function closeModal() {
-            document.getElementById('input-overlay').style.display = 'none';
+            document.getElementById('modal-overlay').style.display = 'none';
         }
+
+        function disableBuzzer() {
+            const btns = document.querySelectorAll('.quiz-btn');
+            btns.forEach(b => b.disabled = true);
+        }
+
+        function enableBuzzer() {
+            const btns = document.querySelectorAll('.quiz-btn');
+            btns.forEach(b => b.disabled = false);
+            hasAnsweredThisRound = false;
+        }
+
+        // --- SOCKETS ---
+        socket.on('timer-tick', (t) => {
+            document.getElementById('admin-timer').innerText = t;
+            document.getElementById('player-timer').innerText = t;
+        });
+
+        socket.on('timer-end', () => {
+            disableBuzzer();
+            closeModal();
+        });
+
+        socket.on('score-updated', (scores) => {
+            for (let i = 1; i <= 10; i++) {
+                const el = document.getElementById(`score-${i}`);
+                if (el) el.innerText = scores[i] || 0;
+            }
+        });
+
+        socket.on('set-updated', (s) => {
+            currentSet = s;
+            if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + s;
+            enableBuzzer(); // Reset buttons when admin changes set
+        });
+
+        socket.on('sync-admin-text', (txt) => {
+            if (myRole === "admin") document.getElementById('admin-q-display').innerText = "LIVE QUESTION: " + txt;
+        });
+
     </script>
 </body>
 </html>
