@@ -10,6 +10,8 @@
             --bg: #020617; --surface: rgba(30, 41, 59, 0.7);
             --accent: #6366f1; --warning: #f59e0b;
             --success: #10b981; --danger: #ef4444; --text-dim: #94a3b8;
+            /* Module Colors */
+            --m-red: #ef4444; --m-green: #10b981; --m-yellow: #f59e0b; --m-orange: #f97316;
         }
         body {
             font-family: 'Inter', sans-serif; background-color: var(--bg);
@@ -19,34 +21,62 @@
         #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-card { background: var(--surface); padding: 3rem; border-radius: 24px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); text-align: center; }
         input { padding: 12px 20px; font-size: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; margin-bottom: 1rem; outline: none; }
+        
         #admin-view, #player-view { display: none; }
         #admin-view { padding: 2rem; flex-direction: column; height: 100%; overflow-y: auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; }
-        .scoreboard-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1rem; }
-        .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; }
+        .scoreboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        
         #player-view { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; }
         .buzzer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 600px; }
-        .quiz-btn { height: 140px; border: none; border-radius: 24px; font-size: 1.2rem; font-weight: 800; color: white; cursor: pointer; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; position: relative; }
         
-        .btn-correct { background-color: var(--success) !important; box-shadow: 0 0 20px var(--success); }
-        .btn-wrong { background-color: var(--danger) !important; box-shadow: 0 0 20px var(--danger); }
-        .locked-label { position: absolute; bottom: 10px; left: 0; right: 0; font-size: 0.7rem; color: #fff; opacity: 0.8; }
+        .quiz-btn { height: 140px; border: none; border-radius: 24px; font-size: 1.2rem; font-weight: 800; color: white; cursor: pointer; transition: all 0.3s; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .quiz-btn:active { transform: scale(0.95); }
+        
+        #btn-red { background: var(--m-red); }
+        #btn-green { background: var(--m-green); }
+        #btn-yellow { background: var(--m-yellow); }
+        #btn-orange { background: var(--m-orange); }
 
-        .timer-circle { width: 100px; height: 100px; border-radius: 50%; border: 6px solid var(--accent); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; }
-        #modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        .btn-correct { background: var(--success) !important; box-shadow: 0 0 30px var(--success) !important; animation: pulse-green 2s infinite; }
+        .btn-wrong { background: var(--danger) !important; box-shadow: 0 0 30px var(--danger) !important; opacity: 0.7; }
+        
+        @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        .locked-label { position: absolute; bottom: 10px; left: 0; right: 0; font-size: 0.7rem; color: #fff; font-weight: 400; text-transform: uppercase; }
+
+        .timer-circle { width: 100px; height: 100px; border-radius: 50%; border: 6px solid var(--accent); display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; transition: all 0.5s; }
+        .timer-warning { border-color: var(--danger); color: var(--danger); animation: shake 0.5s infinite; }
+
+        #modal-overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 1000; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(10px); }
         .mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 2rem 0; width: 100%; }
-        .option-btn { padding: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; cursor: pointer; }
-        .btn-submit { padding: 12px 30px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin: 5px; }
+        .option-btn { padding: 18px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .option-btn:hover { background: var(--accent); }
+        
+        .btn-submit { padding: 12px 30px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .btn-fullscreen { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px; border-radius: 50%; cursor: pointer; z-index: 3000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+
+        /* Hidden YouTube Container */
+        #yt-player-container { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
 <body>
 
+    <div id="yt-player-container"><div id="player"></div></div>
+
+    <button class="btn-fullscreen" onclick="toggleFullScreen()" title="Toggle Fullscreen">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+    </button>
+
     <div id="login-overlay">
         <div class="login-card">
-            <h1>AIGHAM PRO</h1>
+            <h1 style="letter-spacing: 5px; color: var(--accent);">AIGHAM PRO</h1>
             <input type="password" id="login-input" placeholder="Admin or Group #">
             <br>
-            <button class="btn-submit" onclick="handleLogin()">CONNECT</button>
+            <button class="btn-submit" onclick="handleLogin()">CONNECT ENGINE</button>
         </div>
     </div>
 
@@ -54,24 +84,24 @@
         <div class="admin-header">
             <div>
                 <h2 style="margin:0">Admin Control</h2>
-                <p id="admin-set-info" style="color: var(--warning)">Start a Set to Begin</p>
+                <p id="admin-set-info" style="color: var(--warning)">Ready to Launch</p>
             </div>
             <div class="timer-circle" id="admin-timer">30</div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;">
-                </select>
+                <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;"></select>
                 <button class="btn-submit" onclick="triggerSelectedSet()">LAUNCH SET</button>
+                <button class="btn-submit" style="background: var(--danger)" onclick="stopMusic()">STOP MUSIC</button>
             </div>
         </div>
         <div class="scoreboard-grid" id="admin-scoreboard"></div>
     </section>
 
     <section id="player-view">
-        <div id="my-group-label" style="letter-spacing:2px; color:var(--accent); margin-bottom: 10px;">GROUP</div>
+        <div id="my-group-label" style="letter-spacing:4px; font-weight:900; color:var(--accent); margin-bottom: 15px;">GROUP</div>
         <div class="timer-circle" id="player-timer">30</div>
         <div class="buzzer-grid">
-            <button id="btn-red" class="quiz-btn" onclick="loadQuestion('red')">MODULE 1</button>
-            <button id="btn-green" class="quiz-btn" onclick="loadQuestion('green')">MODULE 2</button>
+            <button id="btn-red" class="quiz-btn" onclick="loadQuestion('blue')">MODULE 1</button>
+            <button id="btn-green" class="quiz-btn" onclick="loadQuestion('pink')">MODULE 2</button>
             <button id="btn-yellow" class="quiz-btn" onclick="loadQuestion('yellow')">MODULE 3</button>
             <button id="btn-orange" class="quiz-btn" onclick="loadQuestion('orange')">MODULE 4</button>
         </div>
@@ -79,15 +109,17 @@
 
     <div id="modal-overlay">
         <div class="modal-card" style="text-align:center; width:85%; max-width:450px;">
-            <h2 id="display-q">Question?</h2>
-            <div id="area-id"><input type="text" id="answer-id" placeholder="Your Answer..." style="width:90%"></div>
+            <h2 id="display-q" style="margin-bottom: 2rem;">Question?</h2>
+            <div id="area-id"><input type="text" id="answer-id" placeholder="Type answer here..." style="width:90%; text-align:center;"></div>
             <div id="area-mcq" class="mcq-grid"></div>
-            <div id="modal-footer">
-                <button id="final-submit-btn" class="btn-submit" onclick="submitAnswer()">SUBMIT</button>
+            <div id="modal-footer" style="margin-top: 2rem;">
+                <button id="final-submit-btn" class="btn-submit" onclick="submitAnswer()">SUBMIT ANSWER</button>
                 <button class="btn-submit" style="background:#475569" onclick="closeModal()">CLOSE</button>
             </div>
         </div>
     </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
         const socket = io();
@@ -96,26 +128,50 @@
         let activeColor = "";
         let currentSet = "A";
 
+        // --- YOUTUBE MUSIC SYSTEM ---
+        let ytPlayer;
+        // Replace these IDs with any YouTube Video IDs you like
+        const videoIds = ['9v6p-QxGZQI', 'XfR9iY5y94s']; 
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: videoIds[0],
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': videoIds.join(',') },
+                events: { 'onReady': onPlayerReady }
+            });
+        }
+
+        function onPlayerReady(event) {
+            console.log("YouTube Engine Ready");
+        }
+
+        function playSyncMusic() {
+            if (ytPlayer && ytPlayer.loadVideoById) {
+                const randomId = videoIds[Math.floor(Math.random() * videoIds.length)];
+                ytPlayer.loadVideoById(randomId);
+                ytPlayer.playVideo();
+            }
+        }
+
+        function stopMusic() {
+            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+            socket.emit('sync-admin-text', 'STOP_MUSIC'); 
+        }
+
+        // --- FULLSCREEN ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
         const questionSets = {
             A: { red: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] }, green: { q: "Nearest star?", a: "sun", type: "id" }, yellow: { q: "Water Formula?", a: "h2o", type: "id" }, orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] } },
             B: { red: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" }, green: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] }, yellow: { q: "Symbol for Gold?", a: "au", type: "id" }, orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" } },
-            C: { red: { q: "Smallest unit of life?", a: "cell", type: "id" }, green: { q: "pH of pure water?", a: "7", type: "mcq", choices: ["5", "6", "7", "8"] }, yellow: { q: "Table salt formula?", a: "nacl", type: "id" }, orange: { q: "Center of an atom?", a: "nucleus", type: "mcq", choices: ["Electron", "Proton", "Nucleus", "Shell"] } },
-            D: { red: { q: "Red planet?", a: "mars", type: "id" }, green: { q: "Charge of an electron?", a: "negative", type: "mcq", choices: ["Positive", "Negative", "Neutral", "None"] }, yellow: { q: "Process plants use to make food?", a: "photosynthesis", type: "id" }, orange: { q: "Hottest planet in the solar system?", a: "venus", type: "mcq", choices: ["Mercury", "Venus", "Mars", "Jupiter"] } },
-            E: { red: { q: "Study of living things?", a: "biology", type: "id" }, green: { q: "Melting point of ice (°C)?", a: "0", type: "mcq", choices: ["-1", "0", "1", "100"] }, yellow: { q: "Atomic symbol for Oxygen?", a: "o", type: "id" }, orange: { q: "Layer of gas protecting Earth?", a: "ozone", type: "mcq", choices: ["Oxygen", "Ozone", "Nitrogen", "Argon"] } },
-            F: { red: { q: "Hardest natural substance?", a: "diamond", type: "id" }, green: { q: "Number of bones in adult human?", a: "206", type: "mcq", choices: ["106", "206", "306", "250"] }, yellow: { q: "Liquid metal at room temp?", a: "mercury", type: "id" }, orange: { q: "Primary gas in Earth's atmosphere?", a: "nitrogen", type: "mcq", choices: ["Oxygen", "Carbon", "Nitrogen", "Hydrogen"] } },
-            G: { red: { q: "Energy of motion?", a: "kinetic", type: "id" }, green: { q: "Brain of the cell?", a: "nucleus", type: "mcq", choices: ["Nucleus", "Ribosome", "Vacuole", "Wall"] }, yellow: { q: "Formula for Glucose?", a: "c6h12o6", type: "id" }, orange: { q: "Color of a live copper wire?", a: "brown", type: "mcq", choices: ["Blue", "Yellow", "Green", "Brown"] } },
-            H: { red: { q: "Unit of electrical resistance?", a: "ohm", type: "id" }, green: { q: "Part of eye sensitive to light?", a: "retina", type: "mcq", choices: ["Pupil", "Lens", "Retina", "Iris"] }, yellow: { q: "Density of water (g/cm³)?", a: "1", type: "id" }, orange: { q: "Type of rock from lava?", a: "igneous", type: "mcq", choices: ["Sedimentary", "Metamorphic", "Igneous", "Fossil"] } },
-            I: { red: { q: "Gas needed for fire?", a: "oxygen", type: "id" }, green: { q: "Human blood type 'Universal Donor'?", a: "o", type: "mcq", choices: ["A", "B", "AB", "O"] }, yellow: { q: "Symbol for Silver?", a: "ag", type: "id" }, orange: { q: "Standard unit of mass?", a: "kilogram", type: "mcq", choices: ["Gram", "Kilogram", "Pound", "Ounce"] } },
-            J: { red: { q: "Force that pulls us down?", a: "gravity", type: "id" }, green: { q: "Instrument for earthquakes?", a: "seismograph", type: "mcq", choices: ["Barometer", "Seismograph", "Telescope", "Sonar"] }, yellow: { q: "Speed = Distance / ?", a: "time", type: "id" }, orange: { q: "Boiling point of water (°C)?", a: "100", type: "mcq", choices: ["90", "100", "110", "120"] } },
-            K: { red: { q: "Smallest planet?", a: "mercury", type: "id" }, green: { q: "Acid found in lemons?", a: "citric", type: "mcq", choices: ["Lactic", "Citric", "Acetic", "Hydrochloric"] }, yellow: { q: "Symbol for Sodium?", a: "na", type: "id" }, orange: { q: "How many kingdoms of life?", a: "5", type: "mcq", choices: ["3", "4", "5", "6"] } },
-            L: { red: { q: "Green pigment in plants?", a: "chlorophyll", type: "id" }, green: { q: "State of matter with fixed shape?", a: "solid", type: "mcq", choices: ["Solid", "Liquid", "Gas", "Plasma"] }, yellow: { q: "Atomic number of Hydrogen?", a: "1", type: "id" }, orange: { q: "Earth's natural satellite?", a: "moon", type: "mcq", choices: ["Sun", "Moon", "Mars", "ISS"] } },
-            M: { red: { q: "Unit of Frequency?", a: "hertz", type: "id" }, green: { q: "Father of Genetics?", a: "mendel", type: "mcq", choices: ["Darwin", "Mendel", "Newton", "Einstein"] }, yellow: { q: "Formula for Carbon Dioxide?", a: "co2", type: "id" }, orange: { q: "Common name for NaCl?", a: "salt", type: "mcq", choices: ["Sugar", "Salt", "Baking Soda", "Bleach"] } },
-            N: { red: { q: "Lightest element?", a: "hydrogen", type: "id" }, green: { q: "Human body's largest organ?", a: "skin", type: "mcq", choices: ["Liver", "Heart", "Skin", "Lungs"] }, yellow: { q: "Symbol for Iron?", a: "fe", type: "id" }, orange: { q: "Sound travels fastest in?", a: "solid", type: "mcq", choices: ["Solid", "Liquid", "Gas", "Vacuum"] } },
-            O: { red: { q: "Outer layer of Earth?", a: "crust", type: "id" }, green: { q: "Substance that speeds up reaction?", a: "catalyst", type: "mcq", choices: ["Inhibitor", "Catalyst", "Solvent", "Reactant"] }, yellow: { q: "Ammonia formula?", a: "nh3", type: "id" }, orange: { q: "Main source of energy for Earth?", a: "sun", type: "mcq", choices: ["Moon", "Sun", "Stars", "Core"] } },
-            P: { red: { q: "Ability to do work?", a: "energy", type: "id" }, green: { q: "Normal human body temp (°C)?", a: "37", type: "mcq", choices: ["35", "36", "37", "38"] }, yellow: { q: "Symbol for Potassium?", a: "k", type: "id" }, orange: { q: "Device to measure current?", a: "ammeter", type: "mcq", choices: ["Voltmeter", "Ammeter", "Ohmmeter", "Galvanometer"] } },
-            Q: { red: { q: "Flow of electrons?", a: "electricity", type: "id" }, green: { q: "Male part of a flower?", a: "stamen", type: "mcq", choices: ["Pistil", "Stamen", "Petal", "Sepal"] }, yellow: { q: "Methane formula?", a: "ch4", type: "id" }, orange: { q: "A push or a pull?", a: "force", type: "mcq", choices: ["Work", "Energy", "Force", "Power"] } },
-            R: { red: { q: "Study of fossils?", a: "paleontology", type: "id" }, green: { q: "Galaxy we live in?", a: "milky way", type: "mcq", choices: ["Andromeda", "Milky Way", "Sombrero", "Orion"] }, yellow: { q: "Symbol for Copper?", a: "cu", type: "id" }, orange: { q: "Negatively charged ion?", a: "anion", type: "mcq", choices: ["Cation", "Anion", "Proton", "Neutron"] } },
-            S: { red: { q: "DNA shape?", a: "double helix", type: "id" }, green: { q: "Earth's sister planet?", a: "venus", type: "mcq", choices: ["Mars", "Venus", "Jupiter", "Saturn"] }, yellow: { q: "Sulfuric acid formula?", a: "h2so4", type: "id" }, orange: { q: "Unit of Power?", a: "watt", type: "mcq", choices: ["Joule", "Watt", "Volt", "Ampere"] } },
             T: { red: { q: "Matter with no fixed shape/volume?", a: "gas", type: "id" }, green: { q: "Largest bird egg?", a: "ostrich", type: "mcq", choices: ["Eagle", "Ostrich", "Penguin", "Chicken"] }, yellow: { q: "Atomic number of Carbon?", a: "6", type: "id" }, orange: { q: "Part of plant that absorbs water?", a: "roots", type: "mcq", choices: ["Stem", "Leaves", "Roots", "Flowers"] } }
         };
 
@@ -126,7 +182,7 @@
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('admin-view').style.display = 'flex';
                 initScoreboard();
-                populateSetSelector(); // <--- Dynamically adds your sets
+                populateSetSelector();
             } else if (val.toLowerCase().startsWith('group')) {
                 myRole = val;
                 document.getElementById('login-overlay').style.display = 'none';
@@ -135,7 +191,6 @@
             }
         }
 
-        // Detects all keys in questionSets (A, B, C, etc.) and adds them to dropdown
         function populateSetSelector() {
             const selector = document.getElementById('set-selector');
             selector.innerHTML = "";
@@ -149,20 +204,17 @@
 
         function triggerSelectedSet() {
             const selectedSet = document.getElementById('set-selector').value;
-            changeSet(selectedSet);
+            socket.emit('change-set', selectedSet);
+            socket.emit('start-timer');
+            socket.emit('sync-admin-text', 'START_MUSIC'); 
         }
 
         function initScoreboard() {
             const board = document.getElementById('admin-scoreboard');
             board.innerHTML = "";
             for (let i = 1; i <= 10; i++) {
-                board.innerHTML += `<div class="group-stat"><div>Group ${i}</div><div id="score-${i}" style="font-size:1.5rem">0</div></div>`;
+                board.innerHTML += `<div class="group-stat"><div>Group ${i}</div><div id="score-${i}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">0</div></div>`;
             }
-        }
-
-        function changeSet(s) {
-            socket.emit('change-set', s);
-            socket.emit('start-timer');
         }
 
         function loadQuestion(color) {
@@ -179,7 +231,7 @@
             if (currentQ.type === 'mcq') {
                 idArea.style.display = 'none'; mcq.style.display = 'grid'; mcq.innerHTML = "";
                 currentQ.choices.forEach(c => {
-                    mcq.innerHTML += `<button class="option-btn" ${isLocked?'disabled':''} onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`;
+                    mcq.innerHTML += `<button class="option-btn" ${isLocked?'disabled':''} onclick="selectOption('${c}')">${c}</button>`;
                 });
             } else {
                 idArea.style.display = 'block'; mcq.style.display = 'none';
@@ -191,72 +243,72 @@
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
+        function selectOption(val) {
+            document.getElementById('answer-id').value = val;
+        }
+
         function submitAnswer() {
             const userAns = document.getElementById('answer-id').value.trim().toLowerCase();
             const isCorrect = userAns === currentQ.a.toLowerCase();
-            const gParts = myRole.split(" ");
-            const gNum = gParts.length > 1 ? gParts[1] : 0;
+            const gNum = myRole.replace(/\D/g,'');
             socket.emit('submit-module', { group: gNum, color: activeColor, isCorrect });
             closeModal();
         }
 
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-        function updateLocalUI(group, color, status) {
-            if (myRole === `Group ${group}`) {
-                const btn = document.getElementById(`btn-${color}`);
-                if (btn) {
-                    btn.className = 'quiz-btn ' + (status === 'correct' ? 'btn-correct' : 'btn-wrong');
-                    btn.innerHTML = `MODULE ${color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
-                }
-            }
-        }
+        // --- SOCKET EVENTS ---
+        socket.on('sync-admin-text', (msg) => {
+            if (msg === 'START_MUSIC') playSyncMusic();
+            if (msg === 'STOP_MUSIC') { if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); }
+        });
 
         socket.on('module-synced', (data) => {
-            updateLocalUI(data.group, data.color, data.status);
-            for (let i = 1; i <= 10; i++) {
-                const el = document.getElementById(`score-${i}`);
-                if (el) el.innerText = data.scores[i] || 0;
+            if (myRole.toLowerCase() === `group ${data.group}`) {
+                const btn = document.getElementById(`btn-${data.color}`);
+                if (btn) {
+                    btn.classList.add(data.status === 'correct' ? 'btn-correct' : 'btn-wrong');
+                    btn.innerHTML = `MODULE ${data.color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
+                }
             }
+            const el = document.getElementById(`score-${data.group}`);
+            if (el) el.innerText = data.scores[data.group] || 0;
         });
 
         socket.on('set-updated', (data) => {
             currentSet = data.setName;
             if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
+            
             ['red','green','yellow','orange'].forEach((c, i) => {
                 const btn = document.getElementById(`btn-${c}`);
                 if (btn) {
-                    btn.className = 'quiz-btn'; btn.disabled = false;
+                    btn.className = 'quiz-btn';
+                    btn.disabled = false;
                     btn.innerHTML = `MODULE ${i+1}`;
                 }
             });
         });
 
         socket.on('timer-tick', (t) => {
-            document.getElementById('admin-timer').innerText = t;
-            document.getElementById('player-timer').innerText = t;
+            const circles = document.querySelectorAll('.timer-circle');
+            circles.forEach(c => {
+                c.innerText = t;
+                if (t <= 5) c.classList.add('timer-warning');
+                else c.classList.remove('timer-warning');
+            });
         });
 
         socket.on('timer-end', () => {
             document.querySelectorAll('.quiz-btn').forEach(b => b.disabled = true);
             closeModal();
+            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
         });
 
         socket.on('init-state', (state) => {
             currentSet = state.currentSet;
-            const gParts = myRole ? myRole.split(" ") : [];
-            const gNum = gParts.length > 1 ? gParts[1] : null;
-            
             for (let i = 1; i <= 10; i++) {
                 const el = document.getElementById(`score-${i}`);
                 if (el) el.innerText = state.scores[i] || 0;
-                
-                if (gNum && i == gNum && state.completedModules[i]) {
-                    Object.keys(state.completedModules[i]).forEach(color => {
-                        const status = state.completedModules[i][color];
-                        if (status) updateLocalUI(i, color, status);
-                    });
-                }
             }
         });
     </script>
