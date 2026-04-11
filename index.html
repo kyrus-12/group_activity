@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aigham Quiz System - Pro</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.1);
+            --red: #ef4444;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --orange: #f97316;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: white;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Login Screen --- */
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            background: var(--glass);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        /* --- Layout Visibility --- */
+        #main-section, #players-section { display: none; }
+
+        /* --- Admin Section --- */
+        #main-section {
+            flex: 0.5;
+            padding: 20px;
+            border-bottom: 2px solid var(--glass);
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .scoreboard { display: flex; gap: 20px; }
+        .score-card { background: var(--glass); padding: 10px 30px; border-radius: 12px; text-align: center; min-width: 100px; }
+        
+        .timer-box {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--yellow);
+            text-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+        }
+
+        .set-controls { margin-top: 10px; }
+
+        /* --- Players Section --- */
+        #players-section {
+            flex: 1;
+            display: none; 
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .quiz-btn {
+            border: none;
+            border-radius: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .player-timer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid var(--yellow);
+            font-size: 2rem;
+            z-index: 10;
+        }
+
+        .red { background: var(--red); }
+        .green { background: var(--green); }
+        .yellow { background: var(--yellow); }
+        .orange { background: var(--orange); }
+
+        /* --- Modals --- */
+        #input-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 500;
+            padding: 20px;
+        }
+
+        .mcq-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input { padding: 15px; font-size: 1.2rem; border-radius: 8px; border: none; width: 300px; margin: 10px; }
+        .btn-action { padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; }
+        .mcq-choice { background: var(--glass); color: white; border: 1px solid white; padding: 15px; border-radius: 10px; cursor: pointer; }
+        .mcq-choice:hover { background: white; color: black; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-card">
+            <h1>AIGHAM SYSTEM</h1>
+            <input type="password" id="login-input" placeholder="Type 'Group' or Password">
+            <br>
+            <button class="btn-action" style="background: var(--green); color:white;" onclick="handleLogin()">ENTER</button>
+        </div>
+    </div>
+
+    <section id="main-section">
+        <div class="set-controls">
+            SET: <button onclick="changeSet('A')">A</button> <button onclick="changeSet('B')">B</button> <button onclick="changeSet('C')">C</button>
+            <span id="current-set-display" style="margin-left:10px; color:var(--orange)">Current Set: A</span>
+        </div>
+        <div class="scoreboard">
+            <div class="score-card"><h3>Group A</h3><h2 id="score-A">0</h2></div>
+            <div class="timer-box" id="admin-timer">30</div>
+            <div class="score-card"><h3>Group B</h3><h2 id="score-B">0</h2></div>
+        </div>
+        <div id="admin-q-text" style="font-size: 1.2rem; text-align: center; border: 1px dashed gray; padding: 10px; width: 80%;">Question will appear here</div>
+    </section>
+
+    <section id="players-section">
+        <div class="player-timer" id="p-timer">30</div>
+        <button class="quiz-btn red" onclick="loadQuestion('red')">SET A</button>
+        <button class="quiz-btn green" onclick="loadQuestion('green')">SET B</button>
+        <button class="quiz-btn yellow" onclick="loadQuestion('yellow')">SET C</button>
+        <button class="quiz-btn orange" onclick="loadQuestion('orange')">SET D</button>
+    </section>
+
+    <div id="input-overlay">
+        <h2 id="modal-q" style="text-align: center;">Question?</h2>
+        
+        <div id="id-input-area">
+            <input type="text" id="user-answer" placeholder="Type identification answer...">
+        </div>
+
+        <div id="mcq-input-area" class="mcq-container">
+            </div>
+
+        <div style="margin-top: 30px;">
+            <button class="btn-action" style="background:var(--green); color:white" onclick="checkAnswer('A')">Submit Group A</button>
+            <button class="btn-action" style="background:var(--orange); color:white" onclick="checkAnswer('B')">Submit Group B</button>
+            <button class="btn-action" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        const questionSets = {
+            A: {
+                red: { q: "Which organ pumps blood?", a: "heart", type: "mcq", choices: ["Brain", "Heart", "Lungs", "Liver"] },
+                green: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] },
+                yellow: { q: "Chemical symbol for Gold?", a: "au", type: "id" },
+                orange: { q: "Nearest star to Earth?", a: "sun", type: "id" }
+            },
+            B: {
+                red: { q: "Gas plants breathe in?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N2", "H2"] },
+                green: { q: "Largest planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Saturn", "Earth"] },
+                yellow: { q: "H2O is the formula for?", a: "water", type: "id" },
+                orange: { q: "Powerhouse of the cell?", a: "mitochondria", type: "id" }
+            },
+            C: {
+                red: { q: "Boiling point of water (°C)?", a: "100", type: "mcq", choices: ["0", "50", "100", "212"] },
+                green: { q: "Which is a metal?", a: "iron", type: "mcq", choices: ["Iron", "Oxygen", "Neon", "Helium"] },
+                yellow: { q: "Center of an atom?", a: "nucleus", type: "id" },
+                orange: { q: "Study of life?", a: "biology", type: "id" }
+            }
+        };
+
+        let currentSet = 'A';
+        let scores = { A: 0, B: 0 };
+        let currentQ = null;
+
+        // --- SOCKET LISTENERS ---
+        socket.on('init-state', (state) => {
+            scores = state.scores;
+            currentSet = state.currentSet;
+            updateUI();
+        });
+
+        socket.on('timer-tick', (time) => {
+            document.getElementById('admin-timer').innerText = time;
+            document.getElementById('p-timer').innerText = time;
+        });
+
+        socket.on('score-updated', (newScores) => {
+            scores = newScores;
+            document.getElementById('score-A').innerText = scores.A;
+            document.getElementById('score-B').innerText = scores.B;
+        });
+
+        socket.on('set-updated', (setName) => {
+            currentSet = setName;
+            document.getElementById('current-set-display').innerText = "Current Set: " + setName;
+        });
+
+        socket.on('timer-end', () => {
+            alert("Time is up!");
+        });
+
+        // --- CORE FUNCTIONS ---
+        function handleLogin() {
+            const val = document.getElementById('login-input').value.toLowerCase();
+            if (val === "group") {
+                document.getElementById('login-overlay').style.display = "none";
+                document.getElementById('players-section').style.display = "grid";
+            } else if (val === "admin") {
+                document.getElementById('login-overlay').style.display = "none";
+                document.getElementById('main-section').style.display = "flex";
+                document.getElementById('players-section').style.display = "grid";
+            } else { alert("Wrong Password"); }
+        }
+
+        function changeSet(setName) {
+            socket.emit('change-set', setName);
+        }
+
+        function updateUI() {
+            document.getElementById('score-A').innerText = scores.A;
+            document.getElementById('score-B').innerText = scores.B;
+            document.getElementById('current-set-display').innerText = "Current Set: " + currentSet;
+        }
+
+        function loadQuestion(color) {
+            currentQ = questionSets[currentSet][color];
+            document.getElementById('admin-q-text').innerText = currentQ.q;
+            document.getElementById('modal-q').innerText = currentQ.q;
+            
+            const idArea = document.getElementById('id-input-area');
+            const mcqArea = document.getElementById('mcq-input-area');
+            
+            if (currentQ.type === 'mcq') {
+                idArea.style.display = "none";
+                mcqArea.style.display = "grid";
+                mcqArea.innerHTML = "";
+                currentQ.choices.forEach(choice => {
+                    mcqArea.innerHTML += `<button class="mcq-choice" onclick="selectMCQ('${choice}')">${choice}</button>`;
+                });
+            } else {
+                idArea.style.display = "block";
+                mcqArea.style.display = "none";
+                document.getElementById('user-answer').value = "";
+            }
+            
+            document.getElementById('input-overlay').style.display = 'flex';
+            socket.emit('start-timer');
+        }
+
+        function selectMCQ(choice) {
+            document.getElementById('user-answer').value = choice;
+        }
+
+        function checkAnswer(group) {
+            const val = document.getElementById('user-answer').value.toLowerCase();
+            if (val === currentQ.a.toLowerCase()) {
+                socket.emit('update-score', { group: group, points: 10 });
+                alert("Group " + group + " Correct!");
+            } else {
+                alert("Wrong! Answer: " + currentQ.a);
+            }
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('input-overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
