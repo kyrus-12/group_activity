@@ -24,7 +24,13 @@
         #admin-view, #player-view { display: none; }
         #admin-view { padding: 2rem; flex-direction: column; height: 100%; overflow-y: auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; }
-        .scoreboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        
+        /* New Admin Review Styles */
+        .admin-review-grid { display: grid; grid-template-rows: repeat(4, 1fr); gap: 10px; margin-bottom: 2rem; width: 100%; max-width: 800px; }
+        .review-row { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .review-btn { flex: 1; height: 50px; border-radius: 10px; border: none; color: white; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        
+        .scoreboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem; }
         .group-stat { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -35,10 +41,10 @@
         .quiz-btn:active { transform: scale(0.95); }
         .quiz-btn:disabled { cursor: not-allowed; opacity: 0.8; }
         
-        #btn-blue, [id*="-blue"] { background: var(--m-blue); }
-        #btn-pink, [id*="-pink"] { background: var(--m-pink); }
-        #btn-orange, [id*="-orange"] { background: var(--m-orange); }
-        #btn-yellow, [id*="-yellow"] { background: var(--m-yellow); }
+        #btn-blue, .bg-blue { background: var(--m-blue); }
+        #btn-pink, .bg-pink { background: var(--m-pink); }
+        #btn-orange, .bg-orange { background: var(--m-orange); }
+        #btn-yellow, .bg-yellow { background: var(--m-yellow); }
 
         .btn-correct { background: var(--success) !important; box-shadow: 0 0 30px var(--success) !important; animation: pulse-green 2s infinite; }
         .btn-wrong { background: var(--danger) !important; box-shadow: 0 0 30px var(--danger) !important; opacity: 0.7; }
@@ -85,6 +91,16 @@
                 <button class="btn-submit" style="background: var(--danger)" onclick="stopMusic()">STOP MUSIC</button>
             </div>
         </div>
+
+        <h3 style="color:var(--accent); text-transform:uppercase; font-size:0.9rem; letter-spacing:2px;">Review Master (Post-Game Access)</h3>
+        <div class="admin-review-grid">
+            <div class="review-row"><span>1</span><button class="review-btn bg-blue" onclick="loadQuestion('blue')">Review Blue Module</button></div>
+            <div class="review-row"><span>2</span><button class="review-btn bg-pink" onclick="loadQuestion('pink')">Review Pink Module</button></div>
+            <div class="review-row"><span>3</span><button class="review-btn bg-orange" onclick="loadQuestion('orange')">Review Orange Module</button></div>
+            <div class="review-row"><span>4</span><button class="review-btn bg-yellow" onclick="loadQuestion('yellow')">Review Yellow Module</button></div>
+        </div>
+
+        <h3 style="color:var(--text-dim); text-transform:uppercase; font-size:0.9rem; letter-spacing:2px;">Group Performance</h3>
         <div class="scoreboard-grid" id="admin-scoreboard"></div>
     </section>
 
@@ -167,20 +183,35 @@
         }
 
         function loadQuestion(color) {
-            if (!currentSet) { alert("Wait for Admin!"); return; }
+            if (!currentSet) { alert("Please launch a Set first!"); return; }
             activeColor = color;
             currentQ = questionSets[currentSet][color];
-            const btn = document.getElementById(`btn-${color}`);
-            const isLocked = btn.classList.contains('btn-correct') || btn.classList.contains('btn-wrong');
+            
+            // Check if player's button is locked
+            const pBtn = document.getElementById(`btn-${color}`);
+            const isLocked = pBtn && (pBtn.classList.contains('btn-correct') || pBtn.classList.contains('btn-wrong'));
+            
             document.getElementById('display-q').innerText = currentQ.q;
             const mcq = document.getElementById('area-mcq'), idArea = document.getElementById('area-id');
+            
             if (currentQ.type === 'mcq') {
                 idArea.style.display = 'none'; mcq.style.display = 'grid'; mcq.innerHTML = "";
-                currentQ.choices.forEach(c => mcq.innerHTML += `<button class="option-btn" ${isLocked?'disabled':''} onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`);
+                currentQ.choices.forEach(c => {
+                    mcq.innerHTML += `<button class="option-btn" ${ (isLocked || myRole === "admin") ? 'disabled' : '' } onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`;
+                });
             } else {
                 idArea.style.display = 'block'; mcq.style.display = 'none'; document.getElementById('answer-id').value = "";
+                document.getElementById('answer-id').readOnly = (myRole === "admin");
             }
-            document.getElementById('final-submit-btn').style.display = isLocked ? 'none' : 'inline-block';
+            
+            // ADMIN UI RULE: Hide submit button when Admin is previewing/reviewing
+            const submitBtn = document.getElementById('final-submit-btn');
+            if (myRole === "admin" || isLocked) {
+                submitBtn.style.display = 'none';
+            } else {
+                submitBtn.style.display = 'inline-block';
+            }
+            
             document.getElementById('modal-overlay').style.display = 'flex';
         }
 
@@ -196,20 +227,12 @@
         socket.on('update-active-groups', (activeGroups) => {
             if (myRole === "admin") {
                 const board = document.getElementById('admin-scoreboard');
-                board.innerHTML = ""; 
+                board.innerHTML = "";
                 activeGroups.sort((a,b) => a - b).forEach(num => {
                     board.innerHTML += `
-                        <div class="group-stat" id="card-${num}" style="display: flex; flex-direction: column; gap: 10px; padding: 1.5rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-weight:bold;">GROUP ${num}</span>
-                                <span id="score-${num}" style="font-size:1.2rem; font-weight:bold; color:var(--accent)">0</span>
-                            </div>
-                            <div style="display: grid; grid-template-rows: repeat(4, 1fr); gap: 5px;">
-                                <button id="admin-btn-${num}-blue" class="quiz-btn" style="height: 40px; font-size: 0.8rem; pointer-events: none;">BLUE</button>
-                                <button id="admin-btn-${num}-pink" class="quiz-btn" style="height: 40px; font-size: 0.8rem; pointer-events: none;">PINK</button>
-                                <button id="admin-btn-${num}-orange" class="quiz-btn" style="height: 40px; font-size: 0.8rem; pointer-events: none;">ORANGE</button>
-                                <button id="admin-btn-${num}-yellow" class="quiz-btn" style="height: 40px; font-size: 0.8rem; pointer-events: none;">YELLOW</button>
-                            </div>
+                        <div class="group-stat" id="card-${num}">
+                            <div>Group ${num}</div>
+                            <div id="score-${num}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">0</div>
                         </div>`;
                 });
             }
@@ -223,26 +246,13 @@
                     btn.innerHTML = `${data.color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
                 }
             }
-            if (myRole === "admin") {
-                const adminBtn = document.getElementById(`admin-btn-${data.group}-${data.color}`);
-                if (adminBtn) {
-                    adminBtn.classList.add(data.status === 'correct' ? 'btn-correct' : 'btn-wrong');
-                    adminBtn.innerHTML = `${data.color.toUpperCase()} - ${data.status.toUpperCase()}`;
-                }
-            }
             const el = document.getElementById(`score-${data.group}`); 
             if (el) el.innerText = data.scores[data.group] || 0;
         });
 
         socket.on('set-updated', (data) => {
             currentSet = data.setName;
-            if (myRole === "admin") {
-                document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
-                document.querySelectorAll('[id^="admin-btn-"]').forEach(btn => {
-                    btn.className = 'quiz-btn';
-                    btn.innerHTML = btn.id.split('-').pop().toUpperCase();
-                });
-            }
+            if (myRole === "admin") document.getElementById('admin-set-info').innerText = "Active Set: " + data.setName;
             ['blue','pink','orange','yellow'].forEach(c => {
                 const btn = document.getElementById(`btn-${c}`);
                 if (btn) { btn.className = 'quiz-btn'; btn.disabled = false; btn.innerHTML = c.toUpperCase(); }
@@ -263,9 +273,16 @@
 
         socket.on('init-state', (state) => {
             if(state.isTimerRunning) currentSet = state.currentSet;
-            if (myRole === "admin" && state.activeGroups) {
-                // Re-trigger the group list update on initial load if needed
-                socket.emit('update-active-groups', state.activeGroups); 
+            if (myRole === "admin") {
+                const board = document.getElementById('admin-scoreboard');
+                board.innerHTML = "";
+                state.activeGroups.sort((a,b) => a - b).forEach(num => {
+                    board.innerHTML += `
+                        <div class="group-stat">
+                            <div>Group ${num}</div>
+                            <div id="score-${num}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">${state.scores[num] || 0}</div>
+                        </div>`;
+                });
             }
         });
     </script>
