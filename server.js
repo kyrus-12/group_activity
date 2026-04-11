@@ -20,7 +20,7 @@ let gameState = {
 function resetGameState() {
     for (let i = 1; i <= 10; i++) {
         if (gameState.scores[i] === undefined) gameState.scores[i] = 0;
-        // UPDATED: Changed keys to match your new HTML buttons
+        // Matches the new Blue, Pink, Orange, Yellow UI
         gameState.completedModules[i] = { blue: null, pink: null, orange: null, yellow: null };
     }
 }
@@ -30,15 +30,23 @@ let timerInterval = null;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Helper to stop timer and notify clients
+function endRound() {
+    if (timerInterval) clearInterval(timerInterval);
+    gameState.timeLeft = 0;
+    gameState.isTimerRunning = false;
+    io.emit('timer-tick', 0); // Force UI to show 0
+    io.emit('timer-end');
+    console.log("Round Ended.");
+}
+
 io.on('connection', (socket) => {
     console.log('User Connected:', socket.id);
-
     socket.emit('init-state', gameState);
 
     // 2. ADMIN: CHANGE QUESTION SET
     socket.on('change-set', (setName) => {
         gameState.currentSet = setName;
-        // UPDATED: Reset using the new color keys
         for (let i = 1; i <= 10; i++) {
             gameState.completedModules[i] = { blue: null, pink: null, orange: null, yellow: null };
         }
@@ -50,7 +58,7 @@ io.on('connection', (socket) => {
         });
     });
 
-    // 3. ADMIN: SYNC COMMANDS (Music start/stop)
+    // 3. ADMIN: SYNC COMMANDS
     socket.on('sync-admin-text', (txt) => {
         io.emit('sync-admin-text', txt);
     });
@@ -68,19 +76,15 @@ io.on('connection', (socket) => {
             io.emit('timer-tick', gameState.timeLeft);
             
             if (gameState.timeLeft <= 0) {
-                clearInterval(timerInterval);
-                gameState.isTimerRunning = false;
-                io.emit('timer-end');
+                endRound();
             }
         }, 1000);
     });
 
-    // 5. MODULE SUBMISSION
+    // 5. MODULE SUBMISSION (With Auto-Finish Logic)
     socket.on('submit-module', (data) => {
         let { group, color, isCorrect } = data;
         
-        // The logic here is now correct because gameState.completedModules[group][color]
-        // will look for 'blue', 'pink', etc.
         if (gameState.completedModules[group] && gameState.completedModules[group][color] === null) {
             gameState.completedModules[group][color] = isCorrect ? 'correct' : 'wrong';
             
@@ -94,6 +98,22 @@ io.on('connection', (socket) => {
                 status: gameState.completedModules[group][color],
                 scores: gameState.scores 
             });
+
+            // CHECK IF ALL GROUPS ARE DONE
+            let allGroupsFinished = true;
+            for (let i = 1; i <= 10; i++) {
+                const mods = gameState.completedModules[i];
+                // If any module in any group is still null, they aren't done
+                if (!mods.blue || !mods.pink || !mods.orange || !mods.yellow) {
+                    allGroupsFinished = false;
+                    break;
+                }
+            }
+
+            if (allGroupsFinished && gameState.isTimerRunning) {
+                console.log("All groups finished early! Terminating timer...");
+                endRound();
+            }
         }
     });
 
