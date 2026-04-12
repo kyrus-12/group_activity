@@ -83,12 +83,28 @@
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     
     /* Highlights the selected option in MCQ */
-.option-btn.selected {
-    background: var(--accent) !important;
-    border-color: white;
-    box-shadow: 0 0 15px var(--accent);
-    transform: scale(1.05);
-}
+    .option-btn.selected {
+        background: var(--accent) !important;
+        border-color: white;
+        box-shadow: 0 0 15px var(--accent);
+        transform: scale(1.05);
+    }
+    
+    /* NEW: Admin controls container for buttons below launch/stop */
+    .admin-controls-secondary {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-reset {
+        background: var(--warning) !important;
+    }
+    
+    .btn-new-game {
+        background: var(--success) !important;
+    }
     </style>
 </head>
 <body>
@@ -110,10 +126,17 @@
         <div class="admin-header">
             <div><h2 style="margin:0">Admin Control</h2><p id="admin-set-info" style="color: var(--warning)">Ready to Launch</p></div>
             <div class="timer-circle" id="admin-timer">120</div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;"></select>
-                <button class="btn-submit" onclick="triggerSelectedSet()">LAUNCH SET</button>
-                <button class="btn-submit" style="background: var(--danger)" onclick="stopMusic()">STOP MUSIC</button>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;"></select>
+                    <button class="btn-submit" onclick="triggerSelectedSet()">LAUNCH SET</button>
+                    <button class="btn-submit" style="background: var(--danger)" onclick="stopMusic()">STOP MUSIC</button>
+                </div>
+                <!-- NEW: Secondary buttons positioned below -->
+                <div class="admin-controls-secondary">
+                    <button class="btn-submit btn-reset" onclick="resetScores()">RESET SCORES</button>
+                    <button class="btn-submit btn-new-game" onclick="newGame()">NEW GAME</button>
+                </div>
             </div>
         </div>
 
@@ -326,7 +349,6 @@
     }
 };
             
-    
 
         function handleLogin() {
     const val = document.getElementById('login-input').value.trim();
@@ -372,6 +394,23 @@
             socket.emit('change-set', document.getElementById('set-selector').value);
             socket.emit('start-timer');
             socket.emit('sync-admin-text', 'START_MUSIC'); 
+        }
+        
+        // NEW: Reset scores function
+        function resetScores() {
+            if (confirm('Are you sure you want to reset all scores?')) {
+                socket.emit('reset-scores');
+            }
+        }
+        
+        // NEW: New game function
+        function newGame() {
+            if (confirm('Start a new game? This will reset all progress.')) {
+                socket.emit('new-game');
+                // Reset local UI
+                document.getElementById('admin-set-info').innerText = "Ready to Launch";
+                currentSet = null;
+            }
         }
 
         function loadQuestion(color) {
@@ -551,6 +590,41 @@ socket.on('timer-tick', (t) => {
         }
     }
 });
+
+        // Listen for score reset confirmation
+        socket.on('scores-reset', () => {
+            if (myRole === "admin") {
+                // Update all score displays to 0
+                document.querySelectorAll('[id^="score-"]').forEach(el => {
+                    el.innerText = "0";
+                });
+                alert("Scores have been reset!");
+            }
+        });
+        
+        // Listen for new game confirmation
+        socket.on('game-reset', () => {
+            // Reset all buttons for all players
+            ['blue','pink','orange','yellow'].forEach(c => {
+                const btn = document.getElementById(`btn-${c}`);
+                if (btn) { 
+                    btn.className = 'quiz-btn'; 
+                    btn.disabled = false; 
+                    btn.innerHTML = c.toUpperCase(); 
+                }
+            });
+            
+            // Reset timer display
+            document.querySelectorAll('.timer-circle').forEach(c => {
+                c.innerText = "120";
+                c.classList.remove('timer-warning');
+            });
+            
+            if (myRole === "admin") {
+                document.getElementById('admin-set-info').innerText = "Ready to Launch";
+                currentSet = null;
+            }
+        });
     </script>
 </body>
 </html>
