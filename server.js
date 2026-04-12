@@ -93,7 +93,7 @@ io.on('connection', (socket) => {
         
         if (gameState.completedModules[gNum] && gameState.completedModules[gNum][color] === null) {
             gameState.completedModules[gNum][color] = isCorrect ? 'correct' : 'wrong';
-            if (isCorrect) gameState.scores[gNum] += 10;
+            if (isCorrect) gameState.scores[gNum] += 1;
             
             io.emit('module-synced', { 
                 group: gNum, 
