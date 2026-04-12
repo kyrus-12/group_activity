@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUIZ-piratory System</title>
+    <title>Practice Tests</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
@@ -427,13 +427,18 @@
             });
         });
 
-        socket.on('timer-tick', (t) => {
-            document.querySelectorAll('.timer-circle').forEach(c => {
-                c.innerText = t;
-                if (t <= 5) c.classList.add('timer-warning'); else c.classList.remove('timer-warning');
-            });
-        });
-
+        
+socket.on('timer-tick', (t) => {
+    document.querySelectorAll('.timer-circle').forEach(c => {
+        c.innerText = t;
+        // Turn red and shake if 10 seconds or less
+        if (t <= 10) {
+            c.classList.add('timer-warning');
+        } else {
+            c.classList.remove('timer-warning');
+        }
+    });
+});
         socket.on('timer-end', () => {
             document.querySelectorAll('.quiz-btn').forEach(b => b.disabled = true);
             closeModal(); ytPlayer?.pauseVideo?.();
