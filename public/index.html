@@ -109,12 +109,12 @@
             </div>
         </div>
 
-        <h3 style="color:var(--accent); text-transform:uppercase; font-size:0.9rem; letter-spacing:2px; margin-bottom: 15px;">Review Master (Post-Game)</h3>
+        <h3 style="color:var(--accent); text-transform:uppercase; font-size:0.9rem; letter-spacing:2px; margin-bottom: 15px;">Review Section</h3>
         <div class="admin-review-grid">
-            <div class="review-card"><span>MODULE 1</span><button class="review-btn bg-blue" onclick="loadQuestion('blue')">BLUE</button></div>
-            <div class="review-card"><span>MODULE 2</span><button class="review-btn bg-pink" onclick="loadQuestion('pink')">PINK</button></div>
-            <div class="review-card"><span>MODULE 3</span><button class="review-btn bg-orange" onclick="loadQuestion('orange')">ORANGE</button></div>
-            <div class="review-card"><span>MODULE 4</span><button class="review-btn bg-yellow" onclick="loadQuestion('yellow')">YELLOW</button></div>
+            <div class="review-card"><span>BOX 1</span><button class="review-btn bg-blue" onclick="loadQuestion('blue')">BLUE</button></div>
+            <div class="review-card"><span>BOX 2</span><button class="review-btn bg-pink" onclick="loadQuestion('pink')">PINK</button></div>
+            <div class="review-card"><span>BOX 3</span><button class="review-btn bg-orange" onclick="loadQuestion('orange')">ORANGE</button></div>
+            <div class="review-card"><span>BOX 4</span><button class="review-btn bg-yellow" onclick="loadQuestion('yellow')">YELLOW</button></div>
         </div>
 
         <h3 style="color:var(--text-dim); text-transform:uppercase; font-size:0.9rem; letter-spacing:2px;">Group Performance</h3>
@@ -123,7 +123,7 @@
 
     <section id="player-view">
         <div id="my-group-label" style="letter-spacing:4px; font-weight:900; color:var(--accent); margin-bottom: 15px;">GROUP</div>
-        <div class="timer-circle" id="player-timer">30</div>
+        <div class="timer-circle" id="player-timer">120</div>
         <div class="buzzer-grid">
             <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">BLUE</button>
             <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">PINK</button>
@@ -150,7 +150,7 @@
         let myRole = "", currentQ = null, activeColor = "", currentSet = null;
 
         let ytPlayer;
-        const videoIds = ['9v6p-QxGZQI', 'XfR9iY5y94s']; 
+        const videoIds = ['xkKB_phkp0I', 'XfR9iY5y94s']; 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('player', {
                 height: '0', width: '0', videoId: videoIds[0],
