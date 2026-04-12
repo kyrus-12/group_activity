@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
     socket.on('start-timer', () => {
         if (timerInterval) clearInterval(timerInterval);
         
-        gameState.timeLeft = 30;
+        gameState.timeLeft = 120;
         gameState.isTimerRunning = true;
         io.emit('timer-tick', gameState.timeLeft);
 
