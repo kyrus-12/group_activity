@@ -11,7 +11,7 @@ const io = new Server(server);
 let gameState = {
     scores: {}, 
     currentSet: 'A',
-    timeLeft: 30,
+    timeLeft: 120,
     isTimerRunning: false,
     completedModules: {},
     activeGroups: [] // Track only group numbers that actually logged in
