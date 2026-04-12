@@ -321,21 +321,35 @@
     
 
         function handleLogin() {
-            const val = document.getElementById('login-input').value.trim();
-            if (val.toLowerCase() === 'admin') {
-                myRole = "admin";
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('admin-view').style.display = 'flex';
-                populateSetSelector();
-            } else if (val.toLowerCase().startsWith('group')) {
-                myRole = val;
-                const groupNum = myRole.replace(/\D/g,'');
-                socket.emit('group-login', groupNum);
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('player-view').style.display = 'flex';
-                document.getElementById('my-group-label').innerText = myRole.toUpperCase();
-            }
+    const val = document.getElementById('login-input').value.trim();
+    
+    if (val.toLowerCase() === 'admin') {
+        myRole = "admin";
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('admin-view').style.display = 'flex';
+        populateSetSelector();
+        
+        // ADD THIS: Ask the server for the current state immediately so groups show up
+        socket.emit('get-init-state'); 
+        
+    } else if (val.toLowerCase().startsWith('group')) {
+        // This extracts the number. If user types "Group 1", it sends "1"
+        const groupNum = val.replace(/\D/g,''); 
+        if (groupNum === "") {
+            alert("Please enter a group number (e.g., Group 1)");
+            return;
         }
+        
+        myRole = `group ${groupNum}`;
+        socket.emit('group-login', groupNum); // Send just the number to the server
+        
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('player-view').style.display = 'flex';
+        document.getElementById('my-group-label').innerText = myRole.toUpperCase();
+    } else {
+        alert("Enter 'admin' or 'Group #' to login.");
+    }
+}
 
         function populateSetSelector() {
             const selector = document.getElementById('set-selector');
