@@ -20,7 +20,7 @@ let gameState = {
 // Initialize data for Groups 1-10
 function resetGameState() {
     for (let i = 1; i <= 10; i++) {
-        gameState.scores[i] = 0;
+        if (gameState.scores[i] === undefined) gameState.scores[i] = 0;
         gameState.completedModules[i] = { blue: null, pink: null, orange: null, yellow: null };
     }
 }
@@ -45,11 +45,6 @@ io.on('connection', (socket) => {
     // Send current state immediately on connection
     socket.emit('init-state', gameState);
 
-    // Provide initial state if requested manually
-    socket.on('get-init-state', () => {
-        socket.emit('init-state', gameState);
-    });
-
     socket.on('group-login', (groupNum) => {
         const num = parseInt(groupNum);
         if (!isNaN(num)) {
@@ -57,6 +52,7 @@ io.on('connection', (socket) => {
                 gameState.activeGroups.push(num);
             }
             io.emit('update-active-groups', gameState.activeGroups);
+            // Send state again to the specific group logging in to ensure sync
             socket.emit('init-state', gameState);
         }
     });
@@ -64,7 +60,7 @@ io.on('connection', (socket) => {
     socket.on('change-set', (setName) => {
         gameState.currentSet = setName;
         gameState.timeLeft = 120;
-        // Reset only the modules for the new set, keep total scores
+        // Reset only the modules for the new set, keep total scores if desired
         for (let i = 1; i <= 10; i++) {
             gameState.completedModules[i] = { blue: null, pink: null, orange: null, yellow: null };
         }
@@ -91,26 +87,6 @@ io.on('connection', (socket) => {
         }, 1000);
     });
 
-    // --- RESET SCORES ONLY ---
-    socket.on('reset-scores', () => {
-        for (let i = 1; i <= 10; i++) {
-            gameState.scores[i] = 0;
-        }
-        io.emit('init-state', gameState); // Sync everyone to 0
-        console.log("Scores Reset.");
-    });
-
-    // --- FULL NEW GAME RESET ---
-    socket.on('new-game', () => {
-        if (timerInterval) clearInterval(timerInterval);
-        resetGameState();
-        gameState.timeLeft = 120;
-        gameState.isTimerRunning = false;
-        io.emit('init-state', gameState);
-        io.emit('sync-admin-text', 'STOP_MUSIC');
-        console.log("New Game Started.");
-    });
-
     socket.on('submit-module', (data) => {
         let { group, color, isCorrect } = data;
         let gNum = parseInt(group);
@@ -127,6 +103,50 @@ io.on('connection', (socket) => {
             });
             checkAutoFinish();
         }
+    });
+
+    // NEW: Handle reset scores request from admin
+    socket.on('reset-scores', () => {
+        // Reset all scores to 0
+        for (let i = 1; i <= 10; i++) {
+            gameState.scores[i] = 0;
+        }
+        io.emit('scores-reset');
+        io.emit('update-active-groups', gameState.activeGroups); // Refresh scoreboard
+        console.log("Scores reset by admin");
+    });
+
+    // NEW: Handle new game request from admin
+    socket.on('new-game', () => {
+        // Stop any running timer
+        if (timerInterval) clearInterval(timerInterval);
+        
+        // Reset game state completely
+        gameState.timeLeft = 120;
+        gameState.isTimerRunning = false;
+        gameState.currentSet = 'A';
+        
+        // Reset all scores to 0
+        for (let i = 1; i <= 10; i++) {
+            gameState.scores[i] = 0;
+            gameState.completedModules[i] = { blue: null, pink: null, orange: null, yellow: null };
+        }
+        
+        // Notify all clients to reset their UI
+        io.emit('game-reset');
+        io.emit('timer-tick', 120);
+        io.emit('set-updated', { 
+            setName: gameState.currentSet, 
+            completed: gameState.completedModules 
+        });
+        io.emit('update-active-groups', gameState.activeGroups);
+        
+        console.log("New game started by admin");
+    });
+
+    // Handle request for initial state
+    socket.on('get-init-state', () => {
+        socket.emit('init-state', gameState);
     });
 
     function checkAutoFinish() {
