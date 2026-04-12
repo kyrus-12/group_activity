@@ -459,19 +459,66 @@ socket.on('timer-tick', (t) => {
         });
 
         socket.on('init-state', (state) => {
-            if(state.isTimerRunning) currentSet = state.currentSet;
-            if (myRole === "admin") {
-                const board = document.getElementById('admin-scoreboard');
-                board.innerHTML = "";
-                state.activeGroups.sort((a,b) => a - b).forEach(num => {
-                    board.innerHTML += `
-                        <div class="group-stat">
-                            <div>Group ${num}</div>
-                            <div id="score-${num}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">${state.scores[num] || 0}</div>
-                        </div>`;
-                });
-            }
-        });
+    // Sync current question set and timer display
+    if (state.isTimerRunning) {
+        currentSet = state.currentSet;
+    }
+    
+    // 1. Update Timer visual for everyone
+    document.querySelectorAll('.timer-circle').forEach(c => {
+        c.innerText = state.timeLeft;
+    });
+
+    // 2. ADMIN VIEW: Rebuild the scoreboard
+    if (myRole === "admin") {
+        const board = document.getElementById('admin-scoreboard');
+        if (board) {
+            board.innerHTML = "";
+            state.activeGroups.sort((a, b) => a - b).forEach(num => {
+                board.innerHTML += `
+                    <div class="group-stat" id="card-${num}">
+                        <div>Group ${num}</div>
+                        <div id="score-${num}" style="font-size:1.5rem; font-weight:bold; color:var(--accent)">
+                            ${state.scores[num] || 0}
+                        </div>
+                    </div>`;
+            });
+        }
+        
+        const setInfo = document.getElementById('admin-set-info');
+        if (setInfo) {
+            setInfo.innerText = "Active Set: " + state.currentSet;
+        }
+    } 
+    
+    // 3. PLAYER VIEW: Restore progress and resume game state
+    else if (myRole && myRole.startsWith('group')) {
+        const gNum = parseInt(myRole.replace(/\D/g, ''));
+        const myMods = state.completedModules[gNum];
+
+        if (myMods) {
+            Object.keys(myMods).forEach(color => {
+                const status = myMods[color]; // 'correct', 'wrong', or null
+                const btn = document.getElementById(`btn-${color}`);
+                
+                if (btn && status !== null) {
+                    // Re-apply visual feedback for submitted modules
+                    btn.classList.remove('btn-correct', 'btn-wrong'); // Clean start
+                    btn.classList.add(status === 'correct' ? 'btn-correct' : 'btn-wrong');
+                    
+                    // Lock the button so they can't answer again
+                    btn.innerHTML = `${color.toUpperCase()}<div class="locked-label">LOCKED</div>`;
+                    btn.disabled = true;
+                } else if (btn) {
+                    // Reset buttons if the module is null (e.g., after a set change)
+                    btn.classList.remove('btn-correct', 'btn-wrong');
+                    btn.innerHTML = color.toUpperCase();
+                    btn.disabled = false;
+                }
+            });
+        }
+    }
+});
     </script>
 </body>
 </html>
