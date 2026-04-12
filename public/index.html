@@ -81,6 +81,14 @@
         .btn-fullscreen { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px; border-radius: 50%; cursor: pointer; z-index: 3000; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
         #yt-player-container { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+    
+    /* Highlights the selected option in MCQ */
+.option-btn.selected {
+    background: var(--accent) !important;
+    border-color: white;
+    box-shadow: 0 0 15px var(--accent);
+    transform: scale(1.05);
+}
     </style>
 </head>
 <body>
@@ -367,35 +375,59 @@
         }
 
         function loadQuestion(color) {
-            if (!currentSet) { alert("Please launch a Set first!"); return; }
-            activeColor = color;
-            currentQ = questionSets[currentSet][color];
-            
-            const pBtn = document.getElementById(`btn-${color}`);
-            const isLocked = pBtn && (pBtn.classList.contains('btn-correct') || pBtn.classList.contains('btn-wrong'));
-            
-            document.getElementById('display-q').innerText = currentQ.q;
-            const mcq = document.getElementById('area-mcq'), idArea = document.getElementById('area-id');
-            
-            if (currentQ.type === 'mcq') {
-                idArea.style.display = 'none'; mcq.style.display = 'grid'; mcq.innerHTML = "";
-                currentQ.choices.forEach(c => {
-                    mcq.innerHTML += `<button class="option-btn" ${ (isLocked || myRole === "admin") ? 'disabled' : '' } onclick="document.getElementById('answer-id').value='${c}'">${c}</button>`;
-                });
+    if (!currentSet) { alert("Please launch a Set first!"); return; }
+    activeColor = color;
+    currentQ = questionSets[currentSet][color];
+    
+    const pBtn = document.getElementById(`btn-${color}`);
+    const isLocked = pBtn && (pBtn.classList.contains('btn-correct') || pBtn.classList.contains('btn-wrong'));
+    
+    document.getElementById('display-q').innerText = currentQ.q;
+    const mcq = document.getElementById('area-mcq'), idArea = document.getElementById('area-id');
+    
+    // Reset hidden answer input
+    document.getElementById('answer-id').value = "";
+
+    if (currentQ.type === 'mcq') {
+        idArea.style.display = 'none'; 
+        mcq.style.display = 'grid'; 
+        mcq.innerHTML = "";
+        
+        currentQ.choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = c;
+            if (isLocked || myRole === "admin") {
+                btn.disabled = true;
             } else {
-                idArea.style.display = 'block'; mcq.style.display = 'none'; document.getElementById('answer-id').value = "";
-                document.getElementById('answer-id').readOnly = (myRole === "admin");
+                // When clicked, highlight this button and update the hidden input
+                btn.onclick = (e) => selectOption(e.target, c);
             }
-            
-            const submitBtn = document.getElementById('final-submit-btn');
-            if (myRole === "admin" || isLocked) {
-                submitBtn.style.display = 'none';
-            } else {
-                submitBtn.style.display = 'inline-block';
-            }
-            
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
+            mcq.appendChild(btn);
+        });
+    } else {
+        idArea.style.display = 'block'; 
+        mcq.style.display = 'none'; 
+        document.getElementById('answer-id').readOnly = (myRole === "admin");
+    }
+    
+    const submitBtn = document.getElementById('final-submit-btn');
+    submitBtn.style.display = (myRole === "admin" || isLocked) ? 'none' : 'inline-block';
+    
+    document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+// Helper function to handle the visual selection
+function selectOption(targetEl, value) {
+    // Remove 'selected' class from all sibling options
+    document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+    
+    // Add 'selected' class to the clicked one
+    targetEl.classList.add('selected');
+    
+    // Update the hidden input that submitAnswer() uses
+    document.getElementById('answer-id').value = value;
+}
 
         function submitAnswer() {
             const ans = document.getElementById('answer-id').value.trim().toLowerCase();
