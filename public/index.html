@@ -163,10 +163,83 @@
         function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
 
         const questionSets = {
-            A: { blue: { q: "Unit of Force?", a: "newton", type: "mcq", choices: ["Joule", "Newton", "Watt", "Volt"] }, pink: { q: "Nearest star?", a: "sun", type: "id" }, yellow: { q: "Water Formula?", a: "h2o", type: "id" }, orange: { q: "Largest Planet?", a: "jupiter", type: "mcq", choices: ["Mars", "Jupiter", "Earth", "Saturn"] } },
-            B: { blue: { q: "Powerhouse of cell?", a: "mitochondria", type: "id" }, pink: { q: "Gas we breathe out?", a: "co2", type: "mcq", choices: ["O2", "CO2", "N", "H"] }, yellow: { q: "Symbol for Gold?", a: "au", type: "id" }, orange: { q: "Speed of light (km/s)?", a: "300000", type: "id" } }
-        };
+    A: { 
+        blue: { q: "What lightens the skull?", a: "Sinuses", type: "mcq", choices: ["Sinuses", "Skull Bones", "Mucus", "Cilia"] }, 
+        pink: { q: "What drains tears into nasal cavity?", a: "nasolacrimal ducts", type: "id" }, 
+        yellow: { q: "What separates nose from mouth?", a: "palate", type: "id" }, 
+        orange: { q: "What causes stuffy nose?", a: "Rhinitis", type: "mcq", choices: ["Cold", "Rhinitis", "Fever", "Headache"] } 
+    },
 
+    B: { 
+        blue: { q: "What divides nasal cavity?", a: "Septum", type: "mcq", choices: ["Wall", "Septum", "Bone", "Tissue"] }, 
+        pink: { q: "What warms and moistens air?", a: "respiratory mucosa", type: "id" }, 
+        yellow: { q: "What pushes dirt to throat?", a: "cilia", type: "id" }, 
+        orange: { q: "What makes air swirl?", a: "Conchae", type: "mcq", choices: ["Septum", "Conchae", "Sinuses", "Nose"] } 
+    },
+
+    C: { 
+        blue: { q: "What is the back part of the roof?", a: "Soft Palate", type: "mcq", choices: ["Hard Palate", "Soft Palate", "Tongue", "Teeth"] }, 
+        pink: { q: "What seals off nasopharynx?", a: "soft palate", type: "id" }, 
+        yellow: { q: "What prevents food in nose?", a: "soft palate", type: "id" }, 
+        orange: { q: "What helps speech airflow?", a: "Soft Palate", type: "mcq", choices: ["Lips", "Soft Palate", "Nose", "Throat"] } 
+    },
+
+    D: { 
+        blue: { q: "What is the bony front roof?", a: "Hard Palate", type: "mcq", choices: ["Soft Palate", "Hard Palate", "Gums", "Jaw"] }, 
+        pink: { q: "What forms floor of nose?", a: "hard palate", type: "id" }, 
+        yellow: { q: "What separates mouth from nose?", a: "hard palate", type: "id" }, 
+        orange: { q: "What helps speech sounds?", a: "Hard Palate", type: "mcq", choices: ["Tongue", "Hard Palate", "Lips", "Teeth"] } 
+    },
+
+    E: { 
+        blue: { q: "What is alternative airway?", a: "Mouth", type: "mcq", choices: ["Nose", "Mouth", "Throat", "Lungs"] }, 
+        pink: { q: "What guides airflow?", a: "tongue", type: "id" }, 
+        yellow: { q: "Where air enters when nose blocked?", a: "oral cavity", type: "id" }, 
+        orange: { q: "What part used for speaking?", a: "Mouth", type: "mcq", choices: ["Throat", "Mouth", "Nose", "Ear"] } 
+    },
+
+    F: { 
+        blue: { q: "What traps bacteria in nose?", a: "Adenoids", type: "mcq", choices: ["Tonsils", "Adenoids", "Lymph", "Cells"] }, 
+        pink: { q: "What tissue fights germs?", a: "lymphatic tissue", type: "id" }, 
+        yellow: { q: "Another name for pharyngeal tonsils?", a: "adenoids", type: "id" }, 
+        orange: { q: "What defends against illness?", a: "Tonsils", type: "mcq", choices: ["Skin", "Tonsils", "Blood", "Mucus"] } 
+    },
+
+    G: { 
+        blue: { q: "Where is nasopharynx?", a: "Behind Nose", type: "mcq", choices: ["Behind Nose", "Behind Mouth", "Below", "Front"] }, 
+        pink: { q: "What connects nose to lungs?", a: "nasopharynx", type: "id" }, 
+        yellow: { q: "What part is for air only?", a: "nasopharynx", type: "id" }, 
+        orange: { q: "What is above soft palate?", a: "Nose Area", type: "mcq", choices: ["Mouth", "Nose Area", "Throat", "Lungs"] } 
+    },
+
+    H: { 
+        blue: { q: "What is behind the mouth?", a: "Oropharynx", type: "mcq", choices: ["Throat", "Oropharynx", "Larynx", "Esophagus"] }, 
+        pink: { q: "What passage for food and air?", a: "oropharynx", type: "id" }, 
+        yellow: { q: "What directs food to stomach?", a: "laryngopharynx", type: "id" }, 
+        orange: { q: "What tonsils at tongue base?", a: "Lingual", type: "mcq", choices: ["Adenoids", "Lingual", "Palatine", "Lymph"] } 
+    },
+
+    I: { 
+        blue: { q: "What is common passageway?", a: "Throat", type: "mcq", choices: ["Nose", "Throat", "Mouth", "Lungs"] }, 
+        pink: { q: "What connects throat to ear?", a: "pharyngotympanic tubes", type: "id" }, 
+        yellow: { q: "What guards against infection?", a: "tonsils", type: "id" }, 
+        orange: { q: "What infection spreads to ear?", a: "Ear Infection", type: "mcq", choices: ["Flu", "Ear Infection", "Cold", "Cough"] } 
+    },
+
+    J: { 
+        blue: { q: "What starts swallowing?", a: "Tongue", type: "mcq", choices: ["Teeth", "Tongue", "Lips", "Gums"] }, 
+        pink: { q: "What prevents food in windpipe?", a: "tongue", type: "id" }, 
+        yellow: { q: "What shapes mouth for breathing?", a: "tongue", type: "id" }, 
+        orange: { q: "What keeps airway open at night?", a: "Tongue", type: "mcq", choices: ["Jaw", "Tongue", "Teeth", "Lips"] } 
+    },
+
+    K: { 
+        blue: { q: "What covers windpipe when eating?", a: "Epiglottis", type: "mcq", choices: ["Flap", "Epiglottis", "Skin", "Muscle"] }, 
+        pink: { q: "What prevents food in airway?", a: "epiglottis", type: "id" }, 
+        yellow: { q: "What closes during swallow?", a: "epiglottis", type: "id" }, 
+        orange: { q: "What part is spoon-shaped?", a: "Epiglottis", type: "mcq", choices: ["Tongue", "Epiglottis", "Teeth", "Lips"] } 
+    }
+};
         function handleLogin() {
             const val = document.getElementById('login-input').value.trim();
             if (val.toLowerCase() === 'admin') {
