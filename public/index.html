@@ -125,7 +125,7 @@
     <section id="admin-view">
         <div class="admin-header">
             <div><h2 style="margin:0">Admin Control</h2><p id="admin-set-info" style="color: var(--warning)">Ready to Launch</p></div>
-            <div class="timer-circle" id="admin-timer">120</div>
+            <div class="timer-circle" id="admin-timer">90</div>
             <div style="display: flex; flex-direction: column; align-items: flex-end;">
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <select id="set-selector" style="padding: 12px; border-radius: 12px; background: var(--surface); color: white; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;"></select>
@@ -154,7 +154,7 @@
 
     <section id="player-view">
         <div id="my-group-label" style="letter-spacing:4px; font-weight:900; color:var(--accent); margin-bottom: 15px;">GROUP</div>
-        <div class="timer-circle" id="player-timer">120</div>
+        <div class="timer-circle" id="player-timer">90</div>
         <div class="buzzer-grid">
             <button id="btn-blue" class="quiz-btn" onclick="loadQuestion('blue')">BLUE</button>
             <button id="btn-pink" class="quiz-btn" onclick="loadQuestion('pink')">PINK</button>
@@ -181,7 +181,7 @@
         let myRole = "", currentQ = null, activeColor = "", currentSet = null;
 
         let ytPlayer;
-        const videoIds = ['xkKB_phkp0I', 'oSp6Qxrl7GQ']; 
+        const videoIds = ['xkKB_phkp0I', 'oSp6Qxrl7GQ', 'Li_-60sfASc']; 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('player', {
                 height: '0', width: '0', videoId: videoIds[0],
@@ -616,7 +616,7 @@ socket.on('timer-tick', (t) => {
             
             // Reset timer display
             document.querySelectorAll('.timer-circle').forEach(c => {
-                c.innerText = "120";
+                c.innerText = "90";
                 c.classList.remove('timer-warning');
             });
             
