@@ -11,7 +11,7 @@ const io = new Server(server);
 let gameState = {
     scores: {}, 
     currentSet: 'A',
-    timeLeft: 120,
+    timeLeft: 90,
     isTimerRunning: false,
     completedModules: {}, // Stores: { 1: { blue: 'correct', pink: null... }, 2: ... }
     activeGroups: [] 
@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
 
     socket.on('change-set', (setName) => {
         gameState.currentSet = setName;
-        gameState.timeLeft = 120;
+        gameState.timeLeft = 90;
         // Reset only the modules for the new set, keep total scores if desired
         for (let i = 1; i <= 10; i++) {
             gameState.completedModules[i] = { blue: null, pink: null, orange: null, yellow: null };
@@ -122,7 +122,7 @@ io.on('connection', (socket) => {
         if (timerInterval) clearInterval(timerInterval);
         
         // Reset game state completely
-        gameState.timeLeft = 120;
+        gameState.timeLeft = 90;
         gameState.isTimerRunning = false;
         gameState.currentSet = 'A';
         
@@ -134,7 +134,7 @@ io.on('connection', (socket) => {
         
         // Notify all clients to reset their UI
         io.emit('game-reset');
-        io.emit('timer-tick', 120);
+        io.emit('timer-tick', 90);
         io.emit('set-updated', { 
             setName: gameState.currentSet, 
             completed: gameState.completedModules 
